@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypesensf encoding="UTF-8"?>
+<package format="3">
+  <name>wheeled_bipedal_simulator</name>
+  <version>1.0.0</version>
+  <description>
+    URDF Description package for wheeled bipedal robot
+    This package contains configuration data, 3D models and launch files for wheeled bipedal robot
+  </description>
+  <maintainer email="2890454691@qq.com">handshow</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!-- ROS2 运行时依赖 -->
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>joint_state_publisher_gui</exec_depend>
+  <exec_depend>gazebo_ros_pkgs</exec_depend>
+  <exec_depend>urdf</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+    <gazebo_ros gazebo_model_path="${prefix}/.."/>
+  </export>
+</package>

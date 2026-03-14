@@ -1,0 +1,642 @@
+<?xml version="1.0"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="wheeled_bipedal_simulator">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0.0021437 -0.0018095 0.031519"
+        rpy="0 0 0" />
+      <mass
+        value="1.339" />
+      <inertia
+        ixx="0.031029"
+        ixy="0.000278"
+        ixz="0.000114"
+        iyy="0.017099"
+        iyz="-0.00017"
+        izz="0.044317" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="LF_leg_link">
+    <inertial>
+      <origin
+        xyz="0.04809 -0.017442 0.00033347"
+        rpy="0 0 0" />
+      <mass
+        value="0.21238" />
+      <inertia
+        ixx="0.000116"
+        ixy="-0.000106"
+        ixz="4E-06"
+        iyy="0.000794"
+        iyz="1E-06"
+        izz="0.000814" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/LF_leg_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/LF_leg_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="base_LF_joint"
+    type="continuous">
+    <origin
+      xyz="0.057024 0.25604 0.053"
+      rpy="0 0.43149 -0.011811" />
+    <parent
+      link="base_link" />
+    <child
+      link="LF_leg_link" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="LF_knee_link">
+    <inertial>
+      <origin
+        xyz="0.1231 -0.0078704 -0.00048416"
+        rpy="0 0 0" />
+      <mass
+        value="0.2511" />
+      <inertia
+        ixx="5.8E-05"
+        ixy="1.7E-05"
+        ixz="-1E-05"
+        iyy="0.002071"
+        iyz="0"
+        izz="0.002022" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/LF_knee_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/LF_knee_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="LF_knee_joint"
+    type="continuous">
+    <origin
+      xyz="0.15 0.015 0"
+      rpy="-3.1416 1.1851 -3.1416" />
+    <parent
+      link="LF_leg_link" />
+    <child
+      link="LF_knee_link" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="left_wheel_link">
+    <inertial>
+      <origin
+        xyz="-2E-06 3E-06 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.85254" />
+      <inertia
+        ixx="0.001074"
+        ixy="0"
+        ixz="0"
+        iyy="0.001774"
+        iyz="0"
+        izz="0.001074" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/left_wheel_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.29804 0.29804 0.29804 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/left_wheel_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="left_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="0.249998873591879 -0.0491030149636819 0"
+      rpy="-3.13051030477686 -0.753563717743009 3.1253968717351" />
+    <parent
+      link="LF_knee_link" />
+    <child
+      link="left_wheel_link" />
+    <axis
+      xyz="-0.0118103395321176 -0.999930255507921 0" />
+  </joint>
+  <link
+    name="LR_leg_link">
+    <inertial>
+      <origin
+        xyz="0.051202 -0.01272 -0.00035505"
+        rpy="0 0 0" />
+      <mass
+        value="0.19947" />
+      <inertia
+        ixx="6.3E-05"
+        ixy="-4.9E-05"
+        ixz="-5E-06"
+        iyy="0.000751"
+        iyz="0"
+        izz="0.00073" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/LR_leg_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/LR_leg_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="base_LR_joint"
+    type="continuous">
+    <origin
+      xyz="-0.051597 0.20412 0.053"
+      rpy="-3.1416 0.51685 3.1298" />
+    <parent
+      link="base_link" />
+    <child
+      link="LR_leg_link" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="LR_knee_link">
+    <inertial>
+      <origin
+        xyz="0.12012 0.0077944 -0.00049441"
+        rpy="0 0 0" />
+      <mass
+        value="0.24589" />
+      <inertia
+        ixx="5.6E-05"
+        ixy="-1.4E-05"
+        ixz="-1E-05"
+        iyy="0.001963"
+        iyz="0"
+        izz="0.001916" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/LR_knee_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/LR_knee_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="LR_knee_joint"
+    type="continuous">
+    <origin
+      xyz="0.149999999999806 -0.0300000000000002 0"
+      rpy="3.14159265357704 -1.20970432068389 -3.1415926535845" />
+    <parent
+      link="LR_leg_link" />
+    <child
+      link="LR_knee_link" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+  <link
+    name="RF_leg_link">
+    <inertial>
+      <origin
+        xyz="0.04809 0.017442 0.00033347"
+        rpy="0 0 0" />
+      <mass
+        value="0.21238" />
+      <inertia
+        ixx="0.000116"
+        ixy="0.000106"
+        ixz="4E-06"
+        iyy="0.000794"
+        iyz="1E-06"
+        izz="0.000814" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/RF_leg_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/RF_leg_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="base_RF_joint"
+    type="continuous">
+    <origin
+      xyz="0.05096 -0.25732 0.053"
+      rpy="0 0.40442 -0.011811" />
+    <parent
+      link="base_link" />
+    <child
+      link="RF_leg_link" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="RF_knee_link">
+    <inertial>
+      <origin
+        xyz="0.1231 0.0078704 -0.00048416"
+        rpy="0 0 0" />
+      <mass
+        value="0.2511" />
+      <inertia
+        ixx="5.8E-05"
+        ixy="-1.7E-05"
+        ixz="-1E-05"
+        iyy="0.002071"
+        iyz="0"
+        izz="0.002022" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/RF_knee_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/RF_knee_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RF_knee_joint"
+    type="continuous">
+    <origin
+      xyz="0.149999999999924 -0.0149999999999972 0"
+      rpy="-3.14159265353526 1.17572223524246 -3.14159265353876" />
+    <parent
+      link="RF_leg_link" />
+    <child
+      link="RF_knee_link" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="right_wheel_link">
+    <inertial>
+      <origin
+        xyz="-1E-06 -1E-06 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.85254" />
+      <inertia
+        ixx="0.0010739"
+        ixy="8E-06"
+        ixz="0"
+        iyy="0.0017744"
+        iyz="0"
+        izz="0.0010738" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/right_wheel_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.29804 0.29804 0.29804 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/right_wheel_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="right_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="0.249999235453996 0.0491014228925789 0"
+      rpy="-3.1301112502539 -0.771230823255971 3.12512125115761" />
+    <parent
+      link="RF_knee_link" />
+    <child
+      link="right_wheel_link" />
+    <axis
+      xyz="-0.0118103395321099 -0.999930255507921 0" />
+  </joint>
+  <link
+    name="RR_leg_link">
+    <inertial>
+      <origin
+        xyz="0.051202 0.01272 -0.000355"
+        rpy="0 0 0" />
+      <mass
+        value="0.199469" />
+      <inertia
+        ixx="6.3E-05"
+        ixy="4.9E-05"
+        ixz="-5E-06"
+        iyy="0.000751"
+        iyz="0"
+        izz="0.00073" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/RR_leg_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/RR_leg_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="base_RR_joint"
+    type="continuous">
+    <origin
+      xyz="-0.0564037489137038 -0.202850608084869 0.0529999999998718"
+      rpy="-3.14159265358979 0.540465075056446 3.12978203948131" />
+    <parent
+      link="base_link" />
+    <child
+      link="RR_leg_link" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="RR_knee_link">
+    <inertial>
+      <origin
+        xyz="0.12012 -0.0077944 -0.00049441"
+        rpy="0 0 0" />
+      <mass
+        value="0.24589" />
+      <inertia
+        ixx="5.6E-05"
+        ixy="1.4E-05"
+        ixz="-1E-05"
+        iyy="0.001963"
+        iyz="0"
+        izz="0.001916" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/RR_knee_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://wheeled_bipedal_simulator/meshes/RR_knee_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="RR_knee_joint"
+    type="continuous">
+    <origin
+      xyz="0.14999999999987 0.03 0"
+      rpy="-3.14159265357348 -1.21487868120374 3.14159265357644" />
+    <parent
+      link="RR_leg_link" />
+    <child
+      link="RR_knee_link" />
+    <axis
+      xyz="0 -1 0" />
+  </joint>
+
+  <gazebo>
+      <joint name='LR_WheelJointFixed' type='revolute'>
+        <pose relative_to='LR_knee_link'>0.25 0.049097 0 -0.009804 -0.6928 0.015349</pose>
+        <parent>LR_knee_link</parent>
+        <child>left_wheel_link</child>
+        <axis>
+          <xyz>-0.01181 -0.99993 0</xyz>
+          <!-- <limit>
+            <lower>-3.14</lower>
+            <upper>3.14</upper>
+            <effort>20</effort>
+            <velocity>30</velocity>
+          </limit> -->
+        </axis>
+        <!-- <dynamic>
+          <friction>0.01</friction>
+          <damping>0.01</damping>
+        </dynamic> -->
+      </joint>
+  </gazebo>
+
+  <gazebo>
+      <joint name='RR_WheelJointFixed' type='revolute'>
+        <pose relative_to='RR_knee_link'>0.25 -0.049099 0 -0.0094417 -0.67436 0.015121</pose>
+        <parent>RR_knee_link</parent>
+        <child>right_wheel_link</child>
+        <axis>
+          <xyz>-0.01181 -0.99993 0</xyz>
+          <!-- <limit>
+            <lower>-3.14</lower>
+            <upper>3.14</upper>
+            <effort>20</effort>
+            <velocity>30</velocity>
+          </limit> -->
+        </axis>
+        <!-- <dynamic>
+          <friction>0.01</friction>
+          <damping>0.01</damping>
+        </dynamic> -->
+      </joint>
+  </gazebo>
+
+  <gazebo>
+    <plugin name="gazebo_ros_joint_state_publisher"
+      filename="libgazebo_ros_joint_state_publisher.so">
+      <ros>
+        <namespace>/</namespace>
+        <argument>joint_states:=joint_states</argument>
+      </ros>
+      <update_rate>30</update_rate>
+      <joint_name>base_LF_joint</joint_name>
+      <joint_name>LF_knee_joint</joint_name>
+      <joint_name>left_wheel_joint</joint_name>
+      <joint_name>base_LR_joint</joint_name>
+      <joint_name>LR_knee_joint</joint_name>
+      <joint_name>base_RF_joint</joint_name>
+      <joint_name>RF_knee_joint</joint_name>
+      <joint_name>right_wheel_joint</joint_name>
+      <joint_name>base_RR_joint</joint_name>
+      <joint_name>RR_knee_joint</joint_name>
+      <joint_name>LR_WheelJointFixed</joint_name>
+      <joint_name>RR_WheelJointFixed</joint_name>
+    </plugin>
+  </gazebo>
+</robot>
