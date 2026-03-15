@@ -84,18 +84,12 @@
       </geometry>
     </collision>
   </link>
-  <joint
-    name="base_LF_joint"
-    type="continuous">
-    <origin
-      xyz="0.057024 0.25604 0.053"
-      rpy="0 0.43149 -0.011811" />
-    <parent
-      link="base_link" />
-    <child
-      link="LF_leg_link" />
-    <axis
-      xyz="0 1 0" />
+  <joint name="base_LF_joint" type="revolute">
+    <origin xyz="0.057024 0.25604 0.053" rpy="0 0.43149 -0.011811" />
+    <parent link="base_link" />
+    <child link="LF_leg_link" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.0" upper="1.57" effort="1e9" velocity="1e9"/>
   </joint>
   <link
     name="LF_knee_link">
@@ -243,18 +237,12 @@
       </geometry>
     </collision>
   </link>
-  <joint
-    name="base_LR_joint"
-    type="continuous">
-    <origin
-      xyz="-0.051597 0.20412 0.053"
-      rpy="-3.1416 0.51685 3.1298" />
-    <parent
-      link="base_link" />
-    <child
-      link="LR_leg_link" />
-    <axis
-      xyz="0 1 0" />
+  <joint name="base_LR_joint" type="revolute">
+    <origin xyz="-0.051597 0.20412 0.053" rpy="-3.1416 0.51685 3.1298" />
+    <parent link="base_link" />
+    <child link="LR_leg_link" />
+    <axis xyz="0 1 0" />
+    <limit lower="-0.9" upper="2.089" effort="1e9" velocity="1e9"/>
   </joint>
   <link
     name="LR_knee_link">
@@ -349,18 +337,12 @@
       </geometry>
     </collision>
   </link>
-  <joint
-    name="base_RF_joint"
-    type="continuous">
-    <origin
-      xyz="0.05096 -0.25732 0.053"
-      rpy="0 0.40442 -0.011811" />
-    <parent
-      link="base_link" />
-    <child
-      link="RF_leg_link" />
-    <axis
-      xyz="0 1 0" />
+  <joint name="base_RF_joint" type="revolute">
+    <origin xyz="0.05096 -0.25732 0.053" rpy="0 0.40442 -0.011811" />
+    <parent link="base_link" />
+    <child link="RF_leg_link" />
+    <axis xyz="0 1 0" />
+    <limit lower="-2.0" upper="1.57" effort="1e9" velocity="1e9"/>
   </joint>
   <link
     name="RF_knee_link">
@@ -508,18 +490,12 @@
       </geometry>
     </collision>
   </link>
-  <joint
-    name="base_RR_joint"
-    type="continuous">
-    <origin
-      xyz="-0.0564037489137038 -0.202850608084869 0.0529999999998718"
-      rpy="-3.14159265358979 0.540465075056446 3.12978203948131" />
-    <parent
-      link="base_link" />
-    <child
-      link="RR_leg_link" />
-    <axis
-      xyz="0 1 0" />
+  <joint name="base_RR_joint" type="revolute">
+    <origin xyz="-0.0564037489137038 -0.202850608084869 0.0529999999998718" rpy="-3.14159265358979 0.540465075056446 3.12978203948131" />
+    <parent link="base_link" />
+    <child link="RR_leg_link" />
+    <axis xyz="0 1 0" />
+    <limit lower="-0.9" upper="2.089" effort="1e9" velocity="1e9"/>
   </joint>
   <link
     name="RR_knee_link">
