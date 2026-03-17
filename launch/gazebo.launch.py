@@ -8,7 +8,7 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     # 获取包路径
-    pkg_share = get_package_share_directory('wheeled_bipedal_simulator')
+    pkg_share = get_package_share_directory('wheeled_bipedal_description')
     gazebo_ros_share = get_package_share_directory('gazebo_ros')
     
     # 启动Gazebo（使用gazebo.launch.py）
