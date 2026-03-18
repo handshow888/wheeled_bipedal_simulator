@@ -7,7 +7,7 @@
         <hardware>
             <plugin>gazebo_ros2_control/GazeboSystem</plugin>
         </hardware>
-        <joint name="base_LF_joint">
+        <joint name="LF_hip_joint">
             <command_interface name="position" />
             <command_interface name="velocity" />
             <command_interface name="effort" />
@@ -15,7 +15,7 @@
             <state_interface name="velocity" />
             <state_interface name="effort" />
         </joint>
-        <joint name="base_LR_joint">
+        <joint name="LR_hip_joint">
             <command_interface name="position" />
             <command_interface name="velocity" />
             <command_interface name="effort" />
@@ -23,7 +23,7 @@
             <state_interface name="velocity" />
             <state_interface name="effort" />
         </joint>
-        <joint name="base_RF_joint">
+        <joint name="RF_hip_joint">
             <command_interface name="position" />
             <command_interface name="velocity" />
             <command_interface name="effort" />
@@ -31,7 +31,7 @@
             <state_interface name="velocity" />
             <state_interface name="effort" />
         </joint>
-        <joint name="base_RR_joint">
+        <joint name="RR_hip_joint">
             <command_interface name="position" />
             <command_interface name="velocity" />
             <command_interface name="effort" />

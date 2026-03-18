@@ -40,9 +40,9 @@ diff_drive_controller:
 effort_controller:
     ros__parameters:
       joints:
-        - base_LF_joint
-        - base_LR_joint
-        - base_RF_joint
-        - base_RR_joint
+        - LF_hip_joint
+        - LR_hip_joint
+        - RF_hip_joint
+        - RR_hip_joint
         - left_wheel_joint
         - right_wheel_joint

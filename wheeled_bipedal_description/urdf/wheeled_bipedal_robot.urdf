@@ -52,7 +52,7 @@
     </collision>
   </link>
   <link
-    name="LF_leg_link">
+    name="LF_upper_link">
     <inertial>
       <origin
         xyz="0.04809 -0.017442 0.00033347"
@@ -73,7 +73,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/LF_leg_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/LF_upper_link.STL" />
       </geometry>
       <material
         name="">
@@ -87,20 +87,20 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/LF_leg_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/LF_upper_link.STL" />
       </geometry>
     </collision>
   </link>
-  <joint name="base_LF_joint" type="revolute">
+  <joint name="LF_hip_joint" type="revolute">
     <origin xyz="0.057024 0.25604 0.053" rpy="0 0.43149 -0.011811" />
     <parent link="base_link" />
-    <child link="LF_leg_link" />
+    <child link="LF_upper_link" />
     <axis xyz="0 1 0" />
     <limit lower="-2.0" upper="1.57" effort="1e9" velocity="1e9"/>
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
-    name="LF_knee_link">
+    name="LF_lower_link">
     <inertial>
       <origin
         xyz="0.1231 -0.0078704 -0.00048416"
@@ -121,7 +121,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/LF_knee_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/LF_lower_link.STL" />
       </geometry>
       <material
         name="">
@@ -135,14 +135,14 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/LF_knee_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/LF_lower_link.STL" />
       </geometry>
     </collision>
   </link>
   <joint name="LF_knee_joint" type="continuous">
     <origin xyz="0.15 0.015 0" rpy="-3.1416 1.1851 -3.1416" />
-    <parent link="LF_leg_link" />
-    <child link="LF_knee_link" />
+    <parent link="LF_upper_link" />
+    <child link="LF_lower_link" />
     <axis xyz="0 1 0" />
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
@@ -188,13 +188,13 @@
   </link>
   <joint name="left_wheel_joint" type="continuous">
     <origin xyz="0.249998873591879 -0.0491030149636819 0" rpy="-3.13051030477686 -0.753563717743009 3.1253968717351" />
-    <parent link="LF_knee_link" />
+    <parent link="LF_lower_link" />
     <child link="left_wheel_link" />
     <axis xyz="0.0118103395321176 0.999930255507921 0" />
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
-    name="LR_leg_link">
+    name="LR_upper_link">
     <inertial>
       <origin
         xyz="0.051202 -0.01272 -0.00035505"
@@ -215,7 +215,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/LR_leg_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/LR_upper_link.STL" />
       </geometry>
       <material
         name="">
@@ -229,20 +229,20 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/LR_leg_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/LR_upper_link.STL" />
       </geometry>
     </collision>
   </link>
-  <joint name="base_LR_joint" type="revolute">
+  <joint name="LR_hip_joint" type="revolute">
     <origin xyz="-0.051597 0.20412 0.053" rpy="-3.1416 0.51685 3.1298" />
     <parent link="base_link" />
-    <child link="LR_leg_link" />
+    <child link="LR_upper_link" />
     <axis xyz="0 1 0" />
     <limit lower="-0.9" upper="2.089" effort="1e9" velocity="1e9"/>
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
-    name="LR_knee_link">
+    name="LR_lower_link">
     <inertial>
       <origin
         xyz="0.12012 0.0077944 -0.00049441"
@@ -263,7 +263,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/LR_knee_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/LR_lower_link.STL" />
       </geometry>
       <material
         name="">
@@ -277,19 +277,19 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/LR_knee_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/LR_lower_link.STL" />
       </geometry>
     </collision>
   </link>
   <joint name="LR_knee_joint" type="continuous">
     <origin xyz="0.149999999999806 -0.0300000000000002 0" rpy="3.14159265357704 -1.20970432068389 -3.1415926535845" />
-    <parent link="LR_leg_link" />
-    <child link="LR_knee_link" />
+    <parent link="LR_upper_link" />
+    <child link="LR_lower_link" />
     <axis xyz="0 1 0" />
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
-    name="RF_leg_link">
+    name="RF_upper_link">
     <inertial>
       <origin
         xyz="0.04809 0.017442 0.00033347"
@@ -310,7 +310,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/RF_leg_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/RF_upper_link.STL" />
       </geometry>
       <material
         name="">
@@ -324,20 +324,20 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/RF_leg_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/RF_upper_link.STL" />
       </geometry>
     </collision>
   </link>
-  <joint name="base_RF_joint" type="revolute">
+  <joint name="RF_hip_joint" type="revolute">
     <origin xyz="0.05096 -0.25732 0.053" rpy="0 0.40442 -0.011811" />
     <parent link="base_link" />
-    <child link="RF_leg_link" />
+    <child link="RF_upper_link" />
     <axis xyz="0 1 0" />
     <limit lower="-2.0" upper="1.57" effort="1e9" velocity="1e9"/>
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
-    name="RF_knee_link">
+    name="RF_lower_link">
     <inertial>
       <origin
         xyz="0.1231 0.0078704 -0.00048416"
@@ -358,7 +358,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/RF_knee_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/RF_lower_link.STL" />
       </geometry>
       <material
         name="">
@@ -372,14 +372,14 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/RF_knee_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/RF_lower_link.STL" />
       </geometry>
     </collision>
   </link>
   <joint name="RF_knee_joint" type="continuous">
     <origin xyz="0.149999999999924 -0.0149999999999972 0" rpy="-3.14159265353526 1.17572223524246 -3.14159265353876" />
-    <parent link="RF_leg_link" />
-    <child link="RF_knee_link" />
+    <parent link="RF_upper_link" />
+    <child link="RF_lower_link" />
     <axis xyz="0 1 0" />
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
@@ -425,13 +425,13 @@
   </link>
   <joint name="right_wheel_joint" type="continuous">
     <origin xyz="0.249999235453996 0.0491014228925789 0" rpy="-3.1301112502539 -0.771230823255971 3.12512125115761" />
-    <parent link="RF_knee_link" />
+    <parent link="RF_lower_link" />
     <child link="right_wheel_link" />
     <axis xyz="0.0118103395321099 0.999930255507921 0" />
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
-    name="RR_leg_link">
+    name="RR_upper_link">
     <inertial>
       <origin
         xyz="0.051202 0.01272 -0.000355"
@@ -452,7 +452,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/RR_leg_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/RR_upper_link.STL" />
       </geometry>
       <material
         name="">
@@ -466,20 +466,20 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/RR_leg_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/RR_upper_link.STL" />
       </geometry>
     </collision>
   </link>
-  <joint name="base_RR_joint" type="revolute">
+  <joint name="RR_hip_joint" type="revolute">
     <origin xyz="-0.0564037489137038 -0.202850608084869 0.0529999999998718" rpy="-3.14159265358979 0.540465075056446 3.12978203948131" />
     <parent link="base_link" />
-    <child link="RR_leg_link" />
+    <child link="RR_upper_link" />
     <axis xyz="0 1 0" />
     <limit lower="-0.9" upper="2.089" effort="1e9" velocity="1e9"/>
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
-    name="RR_knee_link">
+    name="RR_lower_link">
     <inertial>
       <origin
         xyz="0.12012 -0.0077944 -0.00049441"
@@ -500,7 +500,7 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/RR_knee_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/RR_lower_link.STL" />
       </geometry>
       <material
         name="">
@@ -514,22 +514,22 @@
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="package://wheeled_bipedal_description/meshes/RR_knee_link.STL" />
+          filename="package://wheeled_bipedal_description/meshes/RR_lower_link.STL" />
       </geometry>
     </collision>
   </link>
   <joint name="RR_knee_joint" type="continuous">
     <origin xyz="0.14999999999987 0.03 0" rpy="-3.14159265357348 -1.21487868120374 3.14159265357644" />
-    <parent link="RR_leg_link" />
-    <child link="RR_knee_link" />
+    <parent link="RR_upper_link" />
+    <child link="RR_lower_link" />
     <axis xyz="0 1 0" />
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
 
   <gazebo>
       <joint name='LR_WheelJointFixed' type='revolute'>
-        <pose relative_to='LR_knee_link'>0.25 0.049097 0 -0.009804 -0.6928 0.015349</pose>
-        <parent>LR_knee_link</parent>
+        <pose relative_to='LR_lower_link'>0.25 0.049097 0 -0.009804 -0.6928 0.015349</pose>
+        <parent>LR_lower_link</parent>
         <child>left_wheel_link</child>
         <axis>
           <xyz>-0.01181 -0.99993 0</xyz>
@@ -549,8 +549,8 @@
 
   <gazebo>
       <joint name='RR_WheelJointFixed' type='revolute'>
-        <pose relative_to='RR_knee_link'>0.25 -0.049099 0 -0.0094417 -0.67436 0.015121</pose>
-        <parent>RR_knee_link</parent>
+        <pose relative_to='RR_lower_link'>0.25 -0.049099 0 -0.0094417 -0.67436 0.015121</pose>
+        <parent>RR_lower_link</parent>
         <child>right_wheel_link</child>
         <axis>
           <xyz>-0.01181 -0.99993 0</xyz>
@@ -576,15 +576,15 @@
         <argument>joint_states:=joint_states</argument>
       </ros>
       <update_rate>30</update_rate>
-      <joint_name>base_LF_joint</joint_name>
+      <joint_name>LF_hip_joint</joint_name>
       <joint_name>LF_knee_joint</joint_name>
       <joint_name>left_wheel_joint</joint_name>
-      <joint_name>base_LR_joint</joint_name>
+      <joint_name>LR_hip_joint</joint_name>
       <joint_name>LR_knee_joint</joint_name>
-      <joint_name>base_RF_joint</joint_name>
+      <joint_name>RF_hip_joint</joint_name>
       <joint_name>RF_knee_joint</joint_name>
       <joint_name>right_wheel_joint</joint_name>
-      <joint_name>base_RR_joint</joint_name>
+      <joint_name>RR_hip_joint</joint_name>
       <joint_name>RR_knee_joint</joint_name>
       <joint_name>LR_WheelJointFixed</joint_name>
       <joint_name>RR_WheelJointFixed</joint_name>
