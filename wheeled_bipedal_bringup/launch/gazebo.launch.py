@@ -98,6 +98,12 @@ def generate_launch_description():
     #     arguments=['diff_drive_controller']
     # )
 
+    effort_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['effort_controller']
+    )
+
     return LaunchDescription([
         gazebo,
         # static_tf,
@@ -105,6 +111,7 @@ def generate_launch_description():
         spawn_entity,
         # joint_state_broadcaster_spawner,
         # diff_drive_controller_spawner,
+        effort_controller_spawner,
         declare_use_rviz_cmd,
         declare_rviz_config_file_cmd,
         rviz_cmd

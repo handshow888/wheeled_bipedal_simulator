@@ -70,11 +70,11 @@ def generate_launch_description():
     #     arguments=['joint_state_broadcaster']
     # )
 
-    diff_drive_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['diff_drive_controller']
-    )
+    # diff_drive_controller_spawner = Node(
+    #     package='controller_manager',
+    #     executable='spawner',
+    #     arguments=['diff_drive_controller']
+    # )
 
     return LaunchDescription([
         gazebo,
@@ -82,5 +82,5 @@ def generate_launch_description():
         robot_state_publisher,
         spawn_entity,
         # joint_state_broadcaster_spawner,
-        diff_drive_controller_spawner
+        # diff_drive_controller_spawner
     ])

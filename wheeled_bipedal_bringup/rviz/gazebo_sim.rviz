@@ -5,6 +5,9 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /TF1
+        - /TF1/Tree1/base_footprint1
+        - /TF1/Tree1/base_footprint1/base_link1
       Splitter Ratio: 0.5
     Tree Height: 296
   - Class: rviz_common/Views
@@ -145,11 +148,9 @@ Visualization Manager:
           Value: true
         left_wheel_link:
           Value: true
-        odom:
-          Value: true
         right_wheel_link:
           Value: true
-      Marker Scale: 1
+      Marker Scale: 0.20000000298023224
       Name: TF
       Show Arrows: true
       Show Axes: true
@@ -171,14 +172,12 @@ Visualization Manager:
             RR_leg_link:
               RR_knee_link:
                 {}
-        odom:
-          {}
       Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: odom
+    Fixed Frame: base_footprint
     Frame Rate: 30
   Name: root
   Tools:
@@ -190,25 +189,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 3.5463199615478516
+      Distance: 1.9928861856460571
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.07264088094234467
-        Y: 0.0018151605036109686
-        Z: -0.05204583331942558
+        X: 0.030183270573616028
+        Y: 0.014588850550353527
+        Z: -0.09263519942760468
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.38499999046325684
+      Pitch: 0.5849998593330383
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.684969425201416
+      Yaw: 3.7349603176116943
     Saved: ~
 Window Geometry:
   Displays:

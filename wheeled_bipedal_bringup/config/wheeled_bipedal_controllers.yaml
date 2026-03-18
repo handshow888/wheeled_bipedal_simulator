@@ -3,11 +3,14 @@ controller_manager:
     robot_description_topic: /robot_description
     update_rate: 1000
 
-    # joint_state_broadcaster:
-    #   type: joint_state_broadcaster/JointStateBroadcaster
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
     
     # diff_drive_controller:
     #   type: diff_drive_controller/DiffDriveController
+
+    effort_controller:
+        type: effort_controllers/JointGroupEffortController
 
 diff_drive_controller:
   ros__parameters:
@@ -33,3 +36,13 @@ diff_drive_controller:
 
     angular.z.max_velocity: 1.0
     angular.z.min_velocity: -1.0
+
+effort_controller:
+    ros__parameters:
+      joints:
+        - base_LF_joint
+        - base_LR_joint
+        - base_RF_joint
+        - base_RR_joint
+        - left_wheel_joint
+        - right_wheel_joint

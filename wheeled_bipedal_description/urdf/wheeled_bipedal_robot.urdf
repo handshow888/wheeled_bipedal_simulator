@@ -97,6 +97,7 @@
     <child link="LF_leg_link" />
     <axis xyz="0 1 0" />
     <limit lower="-2.0" upper="1.57" effort="1e9" velocity="1e9"/>
+    <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
     name="LF_knee_link">
@@ -138,18 +139,12 @@
       </geometry>
     </collision>
   </link>
-  <joint
-    name="LF_knee_joint"
-    type="continuous">
-    <origin
-      xyz="0.15 0.015 0"
-      rpy="-3.1416 1.1851 -3.1416" />
-    <parent
-      link="LF_leg_link" />
-    <child
-      link="LF_knee_link" />
-    <axis
-      xyz="0 1 0" />
+  <joint name="LF_knee_joint" type="continuous">
+    <origin xyz="0.15 0.015 0" rpy="-3.1416 1.1851 -3.1416" />
+    <parent link="LF_leg_link" />
+    <child link="LF_knee_link" />
+    <axis xyz="0 1 0" />
+    <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
     name="left_wheel_link">
@@ -191,18 +186,12 @@
       </geometry>
     </collision>
   </link>
-  <joint
-    name="left_wheel_joint"
-    type="continuous">
-    <origin
-      xyz="0.249998873591879 -0.0491030149636819 0"
-      rpy="-3.13051030477686 -0.753563717743009 3.1253968717351" />
-    <parent
-      link="LF_knee_link" />
-    <child
-      link="left_wheel_link" />
-    <axis
-      xyz="0 1 0" />
+  <joint name="left_wheel_joint" type="continuous">
+    <origin xyz="0.249998873591879 -0.0491030149636819 0" rpy="-3.13051030477686 -0.753563717743009 3.1253968717351" />
+    <parent link="LF_knee_link" />
+    <child link="left_wheel_link" />
+    <axis xyz="0 1 0" />
+    <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
     name="LR_leg_link">
@@ -250,6 +239,7 @@
     <child link="LR_leg_link" />
     <axis xyz="0 1 0" />
     <limit lower="-0.9" upper="2.089" effort="1e9" velocity="1e9"/>
+    <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
     name="LR_knee_link">
@@ -291,18 +281,12 @@
       </geometry>
     </collision>
   </link>
-  <joint
-    name="LR_knee_joint"
-    type="continuous">
-    <origin
-      xyz="0.149999999999806 -0.0300000000000002 0"
-      rpy="3.14159265357704 -1.20970432068389 -3.1415926535845" />
-    <parent
-      link="LR_leg_link" />
-    <child
-      link="LR_knee_link" />
-    <axis
-      xyz="0 1 0" />
+  <joint name="LR_knee_joint" type="continuous">
+    <origin xyz="0.149999999999806 -0.0300000000000002 0" rpy="3.14159265357704 -1.20970432068389 -3.1415926535845" />
+    <parent link="LR_leg_link" />
+    <child link="LR_knee_link" />
+    <axis xyz="0 1 0" />
+    <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
     name="RF_leg_link">
@@ -350,6 +334,7 @@
     <child link="RF_leg_link" />
     <axis xyz="0 1 0" />
     <limit lower="-2.0" upper="1.57" effort="1e9" velocity="1e9"/>
+    <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
     name="RF_knee_link">
@@ -391,18 +376,12 @@
       </geometry>
     </collision>
   </link>
-  <joint
-    name="RF_knee_joint"
-    type="continuous">
-    <origin
-      xyz="0.149999999999924 -0.0149999999999972 0"
-      rpy="-3.14159265353526 1.17572223524246 -3.14159265353876" />
-    <parent
-      link="RF_leg_link" />
-    <child
-      link="RF_knee_link" />
-    <axis
-      xyz="0 1 0" />
+  <joint name="RF_knee_joint" type="continuous">
+    <origin xyz="0.149999999999924 -0.0149999999999972 0" rpy="-3.14159265353526 1.17572223524246 -3.14159265353876" />
+    <parent link="RF_leg_link" />
+    <child link="RF_knee_link" />
+    <axis xyz="0 1 0" />
+    <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
     name="right_wheel_link">
@@ -444,18 +423,12 @@
       </geometry>
     </collision>
   </link>
-  <joint
-    name="right_wheel_joint"
-    type="continuous">
-    <origin
-      xyz="0.249999235453996 0.0491014228925789 0"
-      rpy="-3.1301112502539 -0.771230823255971 3.12512125115761" />
-    <parent
-      link="RF_knee_link" />
-    <child
-      link="right_wheel_link" />
-    <axis
-      xyz="0 1 0" />
+  <joint name="right_wheel_joint" type="continuous">
+    <origin xyz="0.249999235453996 0.0491014228925789 0" rpy="-3.1301112502539 -0.771230823255971 3.12512125115761" />
+    <parent link="RF_knee_link" />
+    <child link="right_wheel_link" />
+    <axis xyz="0 1 0" />
+    <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
     name="RR_leg_link">
@@ -503,6 +476,7 @@
     <child link="RR_leg_link" />
     <axis xyz="0 1 0" />
     <limit lower="-0.9" upper="2.089" effort="1e9" velocity="1e9"/>
+    <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
     name="RR_knee_link">
@@ -544,18 +518,12 @@
       </geometry>
     </collision>
   </link>
-  <joint
-    name="RR_knee_joint"
-    type="continuous">
-    <origin
-      xyz="0.14999999999987 0.03 0"
-      rpy="-3.14159265357348 -1.21487868120374 3.14159265357644" />
-    <parent
-      link="RR_leg_link" />
-    <child
-      link="RR_knee_link" />
-    <axis
-      xyz="0 1 0" />
+  <joint name="RR_knee_joint" type="continuous">
+    <origin xyz="0.14999999999987 0.03 0" rpy="-3.14159265357348 -1.21487868120374 3.14159265357644" />
+    <parent link="RR_leg_link" />
+    <child link="RR_knee_link" />
+    <axis xyz="0 1 0" />
+    <dynamics damping="0.05" friction="0.001"/>
   </joint>
 
   <gazebo>
@@ -572,10 +540,10 @@
             <velocity>30</velocity>
           </limit> -->
         </axis>
-        <!-- <dynamic>
-          <friction>0.01</friction>
-          <damping>0.01</damping>
-        </dynamic> -->
+        <dynamic>
+          <damping>0.05</damping>
+          <friction>0.001</friction>
+        </dynamic>
       </joint>
   </gazebo>
 
@@ -593,10 +561,10 @@
             <velocity>30</velocity>
           </limit> -->
         </axis>
-        <!-- <dynamic>
-          <friction>0.01</friction>
-          <damping>0.01</damping>
-        </dynamic> -->
+        <dynamic>
+          <damping>0.05</damping>
+          <friction>0.001</friction>
+        </dynamic>
       </joint>
   </gazebo>
 
