@@ -190,7 +190,7 @@
     <origin xyz="0.249998873591879 -0.0491030149636819 0" rpy="-3.13051030477686 -0.753563717743009 3.1253968717351" />
     <parent link="LF_knee_link" />
     <child link="left_wheel_link" />
-    <axis xyz="0 1 0" />
+    <axis xyz="0.0118103395321176 0.999930255507921 0" />
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
@@ -427,7 +427,7 @@
     <origin xyz="0.249999235453996 0.0491014228925789 0" rpy="-3.1301112502539 -0.771230823255971 3.12512125115761" />
     <parent link="RF_knee_link" />
     <child link="right_wheel_link" />
-    <axis xyz="0 1 0" />
+    <axis xyz="0.0118103395321099 0.999930255507921 0" />
     <dynamics damping="0.05" friction="0.001"/>
   </joint>
   <link
