@@ -1,24 +1,30 @@
 #!/usr/bin/env python3
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, ExecuteProcess
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 import os
 from ament_index_python.packages import get_package_share_directory
-from launch.substitutions import Command
+from launch.substitutions import Command, LaunchConfiguration
+from launch.conditions import IfCondition
 
 def generate_launch_description():
     # 获取包路径
-    pkg_share = get_package_share_directory('wheeled_bipedal_description')
+    description_pkg = get_package_share_directory('wheeled_bipedal_description')
+    bringup_pkg = get_package_share_directory('wheeled_bipedal_bringup')
     gazebo_ros_share = get_package_share_directory('gazebo_ros')
-    
-    # 启动Gazebo（使用gazebo.launch.py）
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(gazebo_ros_share, 'launch', 'gazebo.launch.py')
-        ),
-        # launch_arguments={'verbose': 'true'}.items()
-    )
+
+    use_rviz = LaunchConfiguration('use_rviz')
+    rviz_config_file = LaunchConfiguration('rviz_config_file')
+
+    declare_use_rviz_cmd = DeclareLaunchArgument(
+        'use_rviz',
+        default_value='True',
+        description='Whether to start RVIZ')
+    declare_rviz_config_file_cmd = DeclareLaunchArgument(
+        'rviz_config_file',
+        default_value=os.path.join(bringup_pkg, 'rviz', 'gazebo_sim.rviz'),
+        description='Full path to the RVIZ config file to use')  
 
     # 静态TF发布器
     # static_tf = Node(
@@ -29,13 +35,21 @@ def generate_launch_description():
     # )
 
     # URDF
-    # urdf_file = os.path.join(pkg_share, 'urdf', 'wheeled_bipedal_robot.urdf')
+    # urdf_file = os.path.join(description_pkg, 'urdf', 'wheeled_bipedal_robot.urdf')
     # with open(urdf_file, 'r', encoding='utf-8') as infp:
     #     robot_desc = infp.read()
 
     # xacro
-    urdf_file = os.path.join(pkg_share, 'urdf', 'gazebo_ros2_control.xacro')
+    urdf_file = os.path.join(description_pkg, 'urdf', 'gazebo_ros2_control.xacro')
     robot_desc = Command(['xacro ', urdf_file])
+
+    # 启动Gazebo（使用gazebo.launch.py）
+    gazebo = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(gazebo_ros_share, 'launch', 'gazebo.launch.py')
+        ),
+        # launch_arguments={'verbose': 'true'}.items()
+    )
 
     # 机器人状态发布器（将URDF加载到参数服务器）
     robot_state_publisher = Node(
@@ -63,6 +77,14 @@ def generate_launch_description():
         output='screen'
     )
 
+    rviz_cmd = Node(
+        condition=IfCondition(use_rviz),
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', rviz_config_file],
+        output='screen')
+
     # tf 直接在urdf里用插件发布了，所以此处注释
     # joint_state_broadcaster_spawner = Node(
     #     package='controller_manager',
@@ -70,11 +92,11 @@ def generate_launch_description():
     #     arguments=['joint_state_broadcaster']
     # )
 
-    diff_drive_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['diff_drive_controller']
-    )
+    # diff_drive_controller_spawner = Node(
+    #     package='controller_manager',
+    #     executable='spawner',
+    #     arguments=['diff_drive_controller']
+    # )
 
     return LaunchDescription([
         gazebo,
@@ -82,5 +104,8 @@ def generate_launch_description():
         robot_state_publisher,
         spawn_entity,
         # joint_state_broadcaster_spawner,
-        diff_drive_controller_spawner
+        # diff_drive_controller_spawner,
+        declare_use_rviz_cmd,
+        declare_rviz_config_file_cmd,
+        rviz_cmd
     ])
