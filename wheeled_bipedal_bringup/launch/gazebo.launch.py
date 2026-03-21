@@ -109,6 +109,12 @@ def generate_launch_description():
         arguments=['effort_controller']
     )
 
+    wheeled_bipedal_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['wheeled_bipedal_controller']
+    )
+
     return LaunchDescription([
         gazebo,
         # static_tf,
@@ -117,7 +123,8 @@ def generate_launch_description():
         joint_state_broadcaster_spawner,
         imu_sensor_broadcaster_spawner,
         # diff_drive_controller_spawner,
-        effort_controller_spawner,
+        # effort_controller_spawner,
+        wheeled_bipedal_controller_spawner,
         declare_use_rviz_cmd,
         declare_rviz_config_file_cmd,
         rviz_cmd

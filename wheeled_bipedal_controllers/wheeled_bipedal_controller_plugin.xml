@@ -1,0 +1,7 @@
+<library path="wheeled_bipedal_controllers">
+    <class name="wheeled_bipedal_controller/WheeledBipedalController" type="wheeled_bipedal_controller::WheeledBipedalController" base_class_type="controller_interface::ControllerInterface">
+        <description>
+          LQR + VMC
+        </description>
+    </class>
+</library>

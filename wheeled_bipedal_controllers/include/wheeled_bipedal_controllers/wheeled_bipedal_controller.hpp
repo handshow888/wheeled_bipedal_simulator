@@ -1,0 +1,64 @@
+#pragma once
+
+#include "controller_interface/controller_interface.hpp"
+
+namespace wheeled_bipedal_controller
+{
+    struct motorStates
+    {
+        double position;
+        double velocity;
+        double effort;
+    };
+
+    struct imuStates
+    {
+        double ang_vel_x;
+        double ang_vel_y;
+        double ang_vel_z;
+        double lin_acc_x;
+        double lin_acc_y;
+        double lin_acc_z;
+    };
+
+    class WheeledBipedalController : public controller_interface::ControllerInterface
+    {
+    public:
+        WheeledBipedalController();
+
+        controller_interface::InterfaceConfiguration command_interface_configuration() const override;
+        controller_interface::InterfaceConfiguration state_interface_configuration() const override;
+
+        controller_interface::CallbackReturn on_init() override;
+        controller_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State &previous_state) override;
+        controller_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State &previous_state) override;
+
+        controller_interface::return_type update(const rclcpp::Time &time, const rclcpp::Duration &period) override;
+
+        // 自定义函数
+        void loadStates();
+
+    private:
+        std::vector<std::string> joint_names_, state_interface_names_;
+        std::string command_interface_name_, imu_name_;
+        // std::vector<double> commands_;
+
+        motorStates lfMotorStates_, lrMotorStates_, rfMotorStates_, rrMotorStates_, lwMotorStates_, rwMotorStates_; // 存储各电机状态值
+        imuStates imuStates_;
+
+        // 用于保存 motor 各个状态接口的索引
+        std::vector<size_t> lf_motor_state_indices_, lr_motor_state_indices_, rf_motor_state_indices_, rr_motor_state_indices_; // 关节电机
+        std::vector<size_t> lw_motor_state_indices_, rw_motor_state_indices_;                                                   // 轮毂电机
+        // IMU 索引缓存
+        std::vector<size_t> imu_state_indices_;
+        // 预定义 IMU 的 6 个状态接口名称
+        const std::vector<std::string> imu_interface_names_ = {
+            "angular_velocity.x",
+            "angular_velocity.y",
+            "angular_velocity.z",
+            "linear_acceleration.x",
+            "linear_acceleration.y",
+            "linear_acceleration.z"};
+
+    }; // WheeledBipedalController
+} // namespace wheeled_bipedal_controller

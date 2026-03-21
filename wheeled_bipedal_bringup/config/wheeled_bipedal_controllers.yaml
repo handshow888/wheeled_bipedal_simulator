@@ -1,7 +1,7 @@
 controller_manager:
   ros__parameters:
     robot_description_topic: /robot_description
-    update_rate: 200
+    update_rate: 1000
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -12,8 +12,11 @@ controller_manager:
     # diff_drive_controller:
     #   type: diff_drive_controller/DiffDriveController
 
-    effort_controller:
-        type: effort_controllers/JointGroupEffortController
+    # effort_controller:
+    #   type: effort_controllers/JointGroupEffortController
+
+    wheeled_bipedal_controller:
+      type: wheeled_bipedal_controller/WheeledBipedalController
     
 
 imu_sensor_broadcaster:
@@ -23,16 +26,21 @@ imu_sensor_broadcaster:
     frame_id:  "imu_link"
 
 effort_controller:
-    ros__parameters:
-      joints:
-        - LF_hip_joint
-        - LR_hip_joint
-        - RF_hip_joint
-        - RR_hip_joint
-        - left_wheel_joint
-        - right_wheel_joint
+  ros__parameters:
+    joints:
+      - LF_hip_joint
+      - LR_hip_joint
+      - RF_hip_joint
+      - RR_hip_joint
+      - left_wheel_joint
+      - right_wheel_joint
 
-
+wheeled_bipedal_controller:
+  ros__parameters:
+    # 左前电机, 左后电机, 右前电机, 右后电机, 左轮, 右轮
+    joints: ["LF_hip_joint", "LR_hip_joint", "RF_hip_joint", "RR_hip_joint", "left_wheel_joint", "right_wheel_joint"]
+    command_interface_type: "effort"
+    imu_name: "imu_sensor"
 
 diff_drive_controller:
   ros__parameters:
