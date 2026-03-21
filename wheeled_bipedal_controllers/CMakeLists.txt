@@ -11,11 +11,20 @@ find_package(rclcpp REQUIRED)
 find_package(controller_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 include_directories(include)
+# include(
+#   ${EIGEN3_INCLUDE_DIRS}
+# )
 
 add_library(${PROJECT_NAME} SHARED
   src/wheeled_bipedal_controller.cpp
+  src/ins_task.cpp
+  src/kalmanFilter.cpp
+  src/QuaternionEKF.cpp
+  src/utils.cpp
+  src/kinematics.cpp
 )
 
 ament_target_dependencies(${PROJECT_NAME}

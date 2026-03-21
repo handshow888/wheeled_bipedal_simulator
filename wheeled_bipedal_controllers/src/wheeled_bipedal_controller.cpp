@@ -11,14 +11,22 @@ namespace wheeled_bipedal_controller
     controller_interface::CallbackReturn WheeledBipedalController::on_init()
     {
         joint_names_ = auto_declare<std::vector<std::string>>("joints", {});
+        joints_bias_values_ = auto_declare<std::vector<double>>("joints_bias_values", {});
         command_interface_name_ = auto_declare<std::string>("command_interface_type", "effort");
         state_interface_names_ = auto_declare<std::vector<std::string>>("state_interface_type", {"position", "velocity", "effort"});
         imu_name_ = auto_declare<std::string>("imu_name", "imu_sensor");
+
         if ((int)joint_names_.size() != 6)
         {
             RCLCPP_ERROR(get_node()->get_logger(), "expected 6 joints, but get %d joints", (int)joint_names_.size());
             return CallbackReturn::ERROR;
         }
+        if ((int)joints_bias_values_.size() != 4)
+        {
+            RCLCPP_ERROR(get_node()->get_logger(), "expected 4 joints_downward_values, but get %d joints", (int)joints_bias_values_.size());
+            return CallbackReturn::ERROR;
+        }
+
         return CallbackReturn::SUCCESS;
     }
 
@@ -129,6 +137,21 @@ namespace wheeled_bipedal_controller
         (void)time;
         (void)period;
         loadStates();
+
+        INS_Task(imuStates_.lin_acc_x, imuStates_.lin_acc_y, imuStates_.lin_acc_z,
+                 imuStates_.ang_vel_x, imuStates_.ang_vel_y, imuStates_.ang_vel_z,
+                 period.seconds());
+
+        // RCLCPP_INFO(rclcpp::get_logger("MotorCalib"), "motorPos: LF:%.4f LR:%.4f RF:%.4f RR:%.4f\n",
+        //             lfMotorStates_.position, lrMotorStates_.position,
+        //             rfMotorStates_.position, rrMotorStates_.position);
+
+        Point leftWheelPos = forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);
+        Point rightWheelPos = forwardKinematics(rrMotorStates_.position, rfMotorStates_.position);
+        // RCLCPP_INFO(get_node()->get_logger(), "phi1:%.2f phi4:%.2f x: %.2f y:%.2f",
+        //             lrMotorStates_.position, lfMotorStates_.position,
+        //             leftWheelPos.x, leftWheelPos.y);
+
         // update函数运行频率测试
         // static auto lastTime = std::chrono::system_clock::now();
         // auto now = std::chrono::system_clock::now();
@@ -176,25 +199,25 @@ namespace wheeled_bipedal_controller
         // --- 1. 读取电机数据 ---
         // if (lf_motor_state_indices_.size() == 3)
         // {
-        lfMotorStates_.position = state_interfaces_[lf_motor_state_indices_[0]].get_value();
+        lfMotorStates_.position = state_interfaces_[lf_motor_state_indices_[0]].get_value() + joints_bias_values_[0];
         lfMotorStates_.velocity = state_interfaces_[lf_motor_state_indices_[1]].get_value();
         lfMotorStates_.effort = state_interfaces_[lf_motor_state_indices_[2]].get_value();
         // }
         // if (lr_motor_state_indices_.size() == 3)
         // {
-        lrMotorStates_.position = state_interfaces_[lr_motor_state_indices_[0]].get_value();
+        lrMotorStates_.position = state_interfaces_[lr_motor_state_indices_[0]].get_value() + joints_bias_values_[1];
         lrMotorStates_.velocity = state_interfaces_[lr_motor_state_indices_[1]].get_value();
         lrMotorStates_.effort = state_interfaces_[lr_motor_state_indices_[2]].get_value();
         // }
         // if (rf_motor_state_indices_.size() == 3)
         // {
-        rfMotorStates_.position = state_interfaces_[rf_motor_state_indices_[0]].get_value();
+        rfMotorStates_.position = state_interfaces_[rf_motor_state_indices_[0]].get_value() + joints_bias_values_[2];
         rfMotorStates_.velocity = state_interfaces_[rf_motor_state_indices_[1]].get_value();
         rfMotorStates_.effort = state_interfaces_[rf_motor_state_indices_[2]].get_value();
         // }
         // if (rr_motor_state_indices_.size() == 3)
         // {
-        rrMotorStates_.position = state_interfaces_[rr_motor_state_indices_[0]].get_value();
+        rrMotorStates_.position = state_interfaces_[rr_motor_state_indices_[0]].get_value() + joints_bias_values_[3];
         rrMotorStates_.velocity = state_interfaces_[rr_motor_state_indices_[1]].get_value();
         rrMotorStates_.effort = state_interfaces_[rr_motor_state_indices_[2]].get_value();
         // }

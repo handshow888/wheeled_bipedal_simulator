@@ -1,76 +1,86 @@
-#!/usr/bin/env python3
+import sys
 import rclpy
 from rclpy.node import Node
+import tf2_ros
 from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
-from tf_transformations import euler_from_quaternion
-import sys
+from scipy.spatial.transform import Rotation as R
+import math
 
-class TfListener(Node):
+class TFListener(Node):
     def __init__(self, parent_frame, child_frame):
-        super().__init__('tf_listener')
+        super().__init__('simple_tf_listener')
         self.parent_frame = parent_frame
         self.child_frame = child_frame
-
-        # TF缓冲区与监听器
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
-
-        # 定时器，每0.1秒输出一次（10Hz）
+        
+        # 初始化 TF 缓存和监听器
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
+        
+        # 定时器：每 0.1 秒监听一次 (10Hz)
         self.timer = self.create_timer(0.1, self.on_timer)
+        
+        self.get_logger().info(f'开始监听: {parent_frame} -> {child_frame}')
 
     def on_timer(self):
         try:
-            # 获取当前时刻的变换（等待最多0.1秒）
+            # 查找最新转换
             now = rclpy.time.Time()
-            trans = self.tf_buffer.lookup_transform(
+            t = self.tf_buffer.lookup_transform(
                 self.parent_frame,
                 self.child_frame,
-                now,
-                timeout=rclpy.duration.Duration(seconds=0.1)
-            )
+                now)
 
-            # 平移部分
-            x = trans.transform.translation.x
-            y = trans.transform.translation.y
-            z = trans.transform.translation.z
-
-            # 旋转部分（四元数转欧拉角，返回 roll, pitch, yaw）
-            q = trans.transform.rotation
+            # 获取位移
+            pos = t.transform.translation
+            
+            # 获取四元数 [x, y, z, w]
+            q = t.transform.rotation
             quat = [q.x, q.y, q.z, q.w]
-            roll, pitch, yaw = euler_from_quaternion(quat)
 
-            # 打印结果
+            # --- 关键部分：使用 Scipy 转换欧拉角 ---
+            # 我们指定旋转顺序为 'xyz'。在这种情况下：
+            # r[0] = roll, r[1] = pitch, r[2] = yaw
+            r = R.from_quat(quat)
+            euler = r.as_euler('xyz', degrees=True)
+            
+            roll = euler[0]
+            pitch = euler[1]
+            yaw = euler[2]
+
+            rot_vec = r.as_rotvec() 
+            # 如果主要旋转在 Y 轴，rot_vec[1] 就是你的弧度制 Pitch
+            pitch_pure = math.degrees(rot_vec[1])
+
+            # 打印结果，重点观察 Pitch
+            # 如果你确定只有 Pitch，可以忽略 Roll 和 Yaw 的微小波动
             self.get_logger().info(
-                f"Translation: x={x:.4f}, y={y:.4f}, z={z:.4f} | "
-                f"Rotation (rpy): roll={roll:.4f}, pitch={pitch:.4f}, yaw={yaw:.4f}"
+                f'\n--- Transform ---\n'
+                f'Position: x={pos.x:.3f}, y={pos.y:.3f}, z={pos.z:.3f}\n'
+                f'Rotation (deg): Roll={roll:.2f}, Pitch={pitch:.2f}, Yaw={yaw:.2f}\n'
+                f'pitch_pure(radian)={pitch_pure / 180.0 * 3.14159265358979323846:.4f}, pitch_pure(deg)={pitch_pure:.4f}'
             )
 
-        except TransformException as e:
-            self.get_logger().warn(f"Could not get transform: {e}")
+        except TransformException as ex:
+            self.get_logger().info(f'无法获取坐标变换: {ex}')
 
 def main():
-    # 检查命令行参数
-    if len(sys.argv) != 3:
-        print("Usage: python3 tf_listener.py <parent_frame> <child_frame>")
-        sys.exit(1)
+    if len(sys.argv) < 3:
+        print("用法: python3 tf_listener.py <parentFrame> <childFrame>")
+        return
 
-    parent_frame = sys.argv[1]
-    child_frame = sys.argv[2]
+    parent = sys.argv[1]
+    child = sys.argv[2]
 
-    # 初始化ROS2
     rclpy.init()
-
-    # 创建节点并运行
-    node = TfListener(parent_frame, child_frame)
+    node = TFListener(parent, child)
+    
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
-    finally:
-        node.destroy_node()
-        rclpy.shutdown()
+    
+    node.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

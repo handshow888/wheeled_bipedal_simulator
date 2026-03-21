@@ -1,6 +1,9 @@
 #pragma once
-
+#include <chrono>
+#include <ctime>
 #include "controller_interface/controller_interface.hpp"
+#include "wheeled_bipedal_controllers/ins_task.h"
+#include "wheeled_bipedal_controllers/kinematics.h"
 
 namespace wheeled_bipedal_controller
 {
@@ -41,6 +44,7 @@ namespace wheeled_bipedal_controller
     private:
         std::vector<std::string> joint_names_, state_interface_names_;
         std::string command_interface_name_, imu_name_;
+        std::vector<double> joints_bias_values_ = {0.0, 0.0, 0.0, 0.0}; // 关节电机实际角度与tf角度偏差（rad）
         // std::vector<double> commands_;
 
         motorStates lfMotorStates_, lrMotorStates_, rfMotorStates_, rrMotorStates_, lwMotorStates_, rwMotorStates_; // 存储各电机状态值

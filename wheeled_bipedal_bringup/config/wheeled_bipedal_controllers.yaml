@@ -1,11 +1,11 @@
 controller_manager:
   ros__parameters:
     robot_description_topic: /robot_description
-    update_rate: 1000
+    update_rate: 100
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
-    
+
     imu_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
@@ -17,13 +17,11 @@ controller_manager:
 
     wheeled_bipedal_controller:
       type: wheeled_bipedal_controller/WheeledBipedalController
-    
 
 imu_sensor_broadcaster:
   ros__parameters:
-
     sensor_name: "imu_sensor"
-    frame_id:  "imu_link"
+    frame_id: "imu_link"
 
 effort_controller:
   ros__parameters:
@@ -38,7 +36,16 @@ effort_controller:
 wheeled_bipedal_controller:
   ros__parameters:
     # 左前电机, 左后电机, 右前电机, 右后电机, 左轮, 右轮
-    joints: ["LF_hip_joint", "LR_hip_joint", "RF_hip_joint", "RR_hip_joint", "left_wheel_joint", "right_wheel_joint"]
+    joints:
+      [
+        "LF_hip_joint",
+        "LR_hip_joint",
+        "RF_hip_joint",
+        "RR_hip_joint",
+        "left_wheel_joint",
+        "right_wheel_joint",
+      ]
+    joints_bias_values: [0.4314, 2.6247, 0.4043, 2.6011] # upper_link关节电机state position和tf的偏差值 tf - state = bias
     command_interface_type: "effort"
     imu_name: "imu_sensor"
 
