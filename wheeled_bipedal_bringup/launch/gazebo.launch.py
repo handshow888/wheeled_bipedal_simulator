@@ -85,12 +85,17 @@ def generate_launch_description():
         arguments=['-d', rviz_config_file],
         output='screen')
 
-    # tf 直接在urdf里用插件发布了，所以此处注释
-    # joint_state_broadcaster_spawner = Node(
-    #     package='controller_manager',
-    #     executable='spawner',
-    #     arguments=['joint_state_broadcaster']
-    # )
+    joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['joint_state_broadcaster']
+    )
+
+    imu_sensor_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['imu_sensor_broadcaster']
+    )
 
     # diff_drive_controller_spawner = Node(
     #     package='controller_manager',
@@ -109,7 +114,8 @@ def generate_launch_description():
         # static_tf,
         robot_state_publisher,
         spawn_entity,
-        # joint_state_broadcaster_spawner,
+        joint_state_broadcaster_spawner,
+        imu_sensor_broadcaster_spawner,
         # diff_drive_controller_spawner,
         effort_controller_spawner,
         declare_use_rviz_cmd,

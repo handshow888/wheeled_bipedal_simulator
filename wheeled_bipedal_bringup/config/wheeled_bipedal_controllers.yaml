@@ -1,16 +1,38 @@
 controller_manager:
   ros__parameters:
     robot_description_topic: /robot_description
-    update_rate: 1000
+    update_rate: 200
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
     
+    imu_sensor_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
     # diff_drive_controller:
     #   type: diff_drive_controller/DiffDriveController
 
     effort_controller:
         type: effort_controllers/JointGroupEffortController
+    
+
+imu_sensor_broadcaster:
+  ros__parameters:
+
+    sensor_name: "imu_sensor"
+    frame_id:  "imu_link"
+
+effort_controller:
+    ros__parameters:
+      joints:
+        - LF_hip_joint
+        - LR_hip_joint
+        - RF_hip_joint
+        - RR_hip_joint
+        - left_wheel_joint
+        - right_wheel_joint
+
+
 
 diff_drive_controller:
   ros__parameters:
@@ -36,13 +58,3 @@ diff_drive_controller:
 
     angular.z.max_velocity: 1.0
     angular.z.min_velocity: -1.0
-
-effort_controller:
-    ros__parameters:
-      joints:
-        - LF_hip_joint
-        - LR_hip_joint
-        - RF_hip_joint
-        - RR_hip_joint
-        - left_wheel_joint
-        - right_wheel_joint
