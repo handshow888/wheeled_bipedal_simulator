@@ -1,9 +1,15 @@
-#pragma once
+#ifndef WHEELED_BIPEDAL_CONTROLLER_HPP
+#define WHEELED_BIPEDAL_CONTROLLER_HPP
+
 #include <chrono>
 #include <ctime>
 #include "controller_interface/controller_interface.hpp"
 #include "wheeled_bipedal_controllers/ins_task.h"
 #include "wheeled_bipedal_controllers/kinematics.h"
+#include "wheeled_bipedal_controllers/LQR.h"
+#include "wheeled_bipedal_controllers/VMC.h"
+#include "wheeled_bipedal_controllers/structural_params.h"
+
 
 namespace wheeled_bipedal_controller
 {
@@ -49,6 +55,7 @@ namespace wheeled_bipedal_controller
 
         motorStates lfMotorStates_, lrMotorStates_, rfMotorStates_, rrMotorStates_, lwMotorStates_, rwMotorStates_; // 存储各电机状态值
         imuStates imuStates_;
+        
 
         // 用于保存 motor 各个状态接口的索引
         std::vector<size_t> lf_motor_state_indices_, lr_motor_state_indices_, rf_motor_state_indices_, rr_motor_state_indices_; // 关节电机
@@ -66,3 +73,6 @@ namespace wheeled_bipedal_controller
 
     }; // WheeledBipedalController
 } // namespace wheeled_bipedal_controller
+
+
+#endif

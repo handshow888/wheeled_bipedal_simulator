@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UTILS_H
+#define UTILS_H
 
 #include "rclcpp/rclcpp.hpp"
 #include <cmath>
@@ -18,3 +19,5 @@ void matrixToRowMajorFloatArray(const Eigen::MatrixXd& mat, float* output);
 
 constexpr float deg2rad = M_PI / 180.0f;  // 乘以此变量可从角度变换到弧度
 constexpr float rad2deg = 180.0f / M_PI;// 乘以此变量可从弧度变换到角度
+
+#endif

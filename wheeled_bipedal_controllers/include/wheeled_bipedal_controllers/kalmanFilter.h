@@ -1,4 +1,6 @@
-#pragma once
+#ifndef KALMANFILTER_H
+#define KALMANFILTER_H
+
 #include "rclcpp/rclcpp.hpp"
 #include <Eigen/Dense>
 #include "utils.h"
@@ -77,3 +79,6 @@ void Kalman_Filter_SetK(KalmanFilter_t *kf);
 void Kalman_Filter_xhatUpdate(KalmanFilter_t *kf);
 void Kalman_Filter_P_Update(KalmanFilter_t *kf);
 float *Kalman_Filter_Update(KalmanFilter_t *kf);
+
+
+#endif

@@ -45,9 +45,24 @@ wheeled_bipedal_controller:
         "left_wheel_joint",
         "right_wheel_joint",
       ]
-    joints_bias_values: [0.4314, 2.6247, 0.4043, 2.6011] # upper_link关节电机state position和tf的偏差值 tf - state = bias
+    joints_bias_values: [0.4314, 2.6247, 0.4043, 2.6011] # upper_link关节电机state position和tf的偏差值 bias = tf - state
     command_interface_type: "effort"
     imu_name: "imu_sensor"
+    rod_lengths: [0.150, 0.250, 0.250, 0.150, 0.120] # L1 - L5
+    wheel_radius: 0.07
+    # LQR的K矩阵拟合多项式的系数（从低次项系数到高次项系数排序）
+    K11poly: []
+    K12poly: []
+    K13poly: []
+    K14poly: []
+    K15poly: []
+    K16poly: []
+    K21poly: []
+    K22poly: []
+    K23poly: []
+    K24poly: []
+    K25poly: []
+    K26poly: []
 
 diff_drive_controller:
   ros__parameters:

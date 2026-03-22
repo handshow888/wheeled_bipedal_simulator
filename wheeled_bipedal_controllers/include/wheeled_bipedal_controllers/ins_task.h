@@ -1,4 +1,6 @@
-#pragma once
+#ifndef INS_TASK_H
+#define INS_TASK_H
+
 #include "rclcpp/rclcpp.hpp"
 #include "kalmanFilter.h"
 #include "QuaternionEKF.h"
@@ -34,3 +36,5 @@ void INS_Task(double aX, double aY, double aZ, double gX, double gY, double gZ, 
 
 void BodyFrameToEarthFrame(const float *vecBF, float *vecEF, float *q);
 void EarthFrameToBodyFrame(const float *vecEF, float *vecBF, float *q);
+
+#endif

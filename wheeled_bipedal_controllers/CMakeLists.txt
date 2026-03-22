@@ -25,6 +25,10 @@ add_library(${PROJECT_NAME} SHARED
   src/QuaternionEKF.cpp
   src/utils.cpp
   src/kinematics.cpp
+  src/LQR.cpp
+  src/VMC.cpp
+  src/structural_params.cpp
+  src/pid_controller.cpp
 )
 
 ament_target_dependencies(${PROJECT_NAME}

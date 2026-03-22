@@ -15,6 +15,20 @@ namespace wheeled_bipedal_controller
         command_interface_name_ = auto_declare<std::string>("command_interface_type", "effort");
         state_interface_names_ = auto_declare<std::vector<std::string>>("state_interface_type", {"position", "velocity", "effort"});
         imu_name_ = auto_declare<std::string>("imu_name", "imu_sensor");
+        rodLengths = auto_declare<std::vector<double>>("rod_lengths", {});
+        wheelRadius = auto_declare<double>("wheel_radius", 0.0);
+        K11poly = auto_declare<std::vector<double>>("K11poly", {});
+        K12poly = auto_declare<std::vector<double>>("K12poly", {});
+        K13poly = auto_declare<std::vector<double>>("K13poly", {});
+        K14poly = auto_declare<std::vector<double>>("K14poly", {});
+        K15poly = auto_declare<std::vector<double>>("K15poly", {});
+        K16poly = auto_declare<std::vector<double>>("K16poly", {});
+        K21poly = auto_declare<std::vector<double>>("K21poly", {});
+        K22poly = auto_declare<std::vector<double>>("K22poly", {});
+        K23poly = auto_declare<std::vector<double>>("K23poly", {});
+        K24poly = auto_declare<std::vector<double>>("K24poly", {});
+        K25poly = auto_declare<std::vector<double>>("K25poly", {});
+        K26poly = auto_declare<std::vector<double>>("K26poly", {});
 
         if ((int)joint_names_.size() != 6)
         {
@@ -23,7 +37,17 @@ namespace wheeled_bipedal_controller
         }
         if ((int)joints_bias_values_.size() != 4)
         {
-            RCLCPP_ERROR(get_node()->get_logger(), "expected 4 joints_downward_values, but get %d joints", (int)joints_bias_values_.size());
+            RCLCPP_ERROR(get_node()->get_logger(), "expected 4 joints_downward_values, but get %d joints'", (int)joints_bias_values_.size());
+            return CallbackReturn::ERROR;
+        }
+        if ((int)rodLengths.size() != 5)
+        {
+            RCLCPP_ERROR(get_node()->get_logger(), "expected 5 rod_lengths, but get %d lengths", (int)rodLengths.size());
+            return CallbackReturn::ERROR;
+        }
+        if (wheelRadius <= 0.0)
+        {
+            RCLCPP_ERROR(get_node()->get_logger(), "expected correct wheel_radius, but get value: %.2f", wheelRadius);
             return CallbackReturn::ERROR;
         }
 
@@ -95,7 +119,7 @@ namespace wheeled_bipedal_controller
         {
             indices_array.clear();
             for (const auto &interface_type : state_interface_names_)
-            { // "position", "velocity", "effort"
+            { // "wheelPos", "velocity", "effort"
                 std::string target_name = prefix + "/" + interface_type;
                 for (size_t i = 0; i < state_interfaces_.size(); ++i)
                 {
@@ -143,14 +167,27 @@ namespace wheeled_bipedal_controller
                  period.seconds());
 
         // RCLCPP_INFO(rclcpp::get_logger("MotorCalib"), "motorPos: LF:%.4f LR:%.4f RF:%.4f RR:%.4f\n",
-        //             lfMotorStates_.position, lrMotorStates_.position,
-        //             rfMotorStates_.position, rrMotorStates_.position);
+        //             lfMotorStates_.wheelPos, lrMotorStates_.wheelPos,
+        //             rfMotorStates_.wheelPos, rrMotorStates_.wheelPos);
 
-        Point leftWheelPos = forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);
-        Point rightWheelPos = forwardKinematics(rrMotorStates_.position, rfMotorStates_.position);
-        // RCLCPP_INFO(get_node()->get_logger(), "phi1:%.2f phi4:%.2f x: %.2f y:%.2f",
-        //             lrMotorStates_.position, lfMotorStates_.position,
-        //             leftWheelPos.x, leftWheelPos.y);
+        kinematics::fwdKinematicsResult leftFwdKResult = kinematics::forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);
+        kinematics::fwdKinematicsResult rightFwdKResult = kinematics::forwardKinematics(rrMotorStates_.position, rfMotorStates_.position);
+
+        // double left_T_target, left_T_p_target;
+        // static double leftThetalast = 0.0;
+        // double leftTheta = leftFwdKResult.phi0 + INS.Pitch - M_PI_2;
+        // double leftThetaDot = (leftTheta - leftThetalast) / period.seconds();
+        // leftThetalast = leftTheta;
+        // static double leftWheelx = 0.0;
+        // leftWheelx += lwMotorStates_.velocity * wheelRadius * period.seconds(); // 假设vel state是角速度，待测试
+        // calKmat(leftFwdKResult.L0);
+        // cal_LQR_u(leftTheta, leftThetaDot,
+        //           leftWheelx, lwMotorStates_.velocity * wheelRadius,
+        //           -INS.Pitch, -INS.Gyro[1],
+        //           left_T_target, left_T_p_target);
+        RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f|RW x: %.2f y:%.2f",
+                    leftFwdKResult.wheelPos.x, leftFwdKResult.wheelPos.y,
+                    rightFwdKResult.wheelPos.x, rightFwdKResult.wheelPos.y);
 
         // update函数运行频率测试
         // static auto lastTime = std::chrono::system_clock::now();
@@ -163,86 +200,43 @@ namespace wheeled_bipedal_controller
         //             time.seconds(),
         //             1.0 / period.seconds());
 
-        // 读取state测试
-        // RCLCPP_INFO(get_node()->get_logger(), "gx:%.2f,gy:%.2f,gz:%.2f,ax:%.2f,ay:%.2f,az:%.2f\n",
-        //             imuStates_.ang_vel_x,
-        //             imuStates_.ang_vel_y,
-        //             imuStates_.ang_vel_z,
-        //             imuStates_.lin_acc_x,
-        //             imuStates_.lin_acc_y,
-        //             imuStates_.lin_acc_z);
-        // motorStates *motorStatePtr = &rrMotorStates_;
-        // std::vector<size_t> *motor_state_indices = &rr_motor_state_indices_;
-        // for (size_t index : *motor_state_indices)
-        // {
-        //     printf("%s(index:%d) state:%.2f == ", state_interfaces_[index].get_name().c_str(),
-        //                 (int)index,
-        //                 state_interfaces_[index].get_value());
-        //     if (state_interfaces_[index].get_interface_name() == "position")
-        //     {
-        //         printf("%.2f\n", motorStatePtr->position);
-        //     }
-        //     else if (state_interfaces_[index].get_interface_name() == "velocity")
-        //     {
-        //         printf("%.2f\n", motorStatePtr->velocity);
-        //     }
-        //     else
-        //     {
-        //         printf("%.2f\n", motorStatePtr->effort);
-        //     }
-        // }
         return controller_interface::return_type::OK;
     }
 
     void WheeledBipedalController::loadStates()
     {
         // --- 1. 读取电机数据 ---
-        // if (lf_motor_state_indices_.size() == 3)
-        // {
         lfMotorStates_.position = state_interfaces_[lf_motor_state_indices_[0]].get_value() + joints_bias_values_[0];
         lfMotorStates_.velocity = state_interfaces_[lf_motor_state_indices_[1]].get_value();
         lfMotorStates_.effort = state_interfaces_[lf_motor_state_indices_[2]].get_value();
-        // }
-        // if (lr_motor_state_indices_.size() == 3)
-        // {
+
         lrMotorStates_.position = state_interfaces_[lr_motor_state_indices_[0]].get_value() + joints_bias_values_[1];
         lrMotorStates_.velocity = state_interfaces_[lr_motor_state_indices_[1]].get_value();
         lrMotorStates_.effort = state_interfaces_[lr_motor_state_indices_[2]].get_value();
-        // }
-        // if (rf_motor_state_indices_.size() == 3)
-        // {
+
         rfMotorStates_.position = state_interfaces_[rf_motor_state_indices_[0]].get_value() + joints_bias_values_[2];
         rfMotorStates_.velocity = state_interfaces_[rf_motor_state_indices_[1]].get_value();
         rfMotorStates_.effort = state_interfaces_[rf_motor_state_indices_[2]].get_value();
-        // }
-        // if (rr_motor_state_indices_.size() == 3)
-        // {
+
         rrMotorStates_.position = state_interfaces_[rr_motor_state_indices_[0]].get_value() + joints_bias_values_[3];
         rrMotorStates_.velocity = state_interfaces_[rr_motor_state_indices_[1]].get_value();
         rrMotorStates_.effort = state_interfaces_[rr_motor_state_indices_[2]].get_value();
-        // }
-        // if (lw_motor_state_indices_.size() == 3)
-        // {
+
         lwMotorStates_.position = state_interfaces_[lw_motor_state_indices_[0]].get_value();
         lwMotorStates_.velocity = state_interfaces_[lw_motor_state_indices_[1]].get_value();
         lwMotorStates_.effort = state_interfaces_[lw_motor_state_indices_[2]].get_value();
-        // }
-        // if (rw_motor_state_indices_.size() == 3)
-        // {
+
         rwMotorStates_.position = state_interfaces_[rw_motor_state_indices_[0]].get_value();
         rwMotorStates_.velocity = state_interfaces_[rw_motor_state_indices_[1]].get_value();
         rwMotorStates_.effort = state_interfaces_[rw_motor_state_indices_[2]].get_value();
-        // }
+
         // --- 2. 读取 IMU 数据 ---
-        // if (imu_state_indices_.size() == 6)
-        // {
         imuStates_.ang_vel_x = state_interfaces_[imu_state_indices_[0]].get_value();
         imuStates_.ang_vel_y = state_interfaces_[imu_state_indices_[1]].get_value();
         imuStates_.ang_vel_z = state_interfaces_[imu_state_indices_[2]].get_value();
         imuStates_.lin_acc_x = state_interfaces_[imu_state_indices_[3]].get_value();
         imuStates_.lin_acc_y = state_interfaces_[imu_state_indices_[4]].get_value();
         imuStates_.lin_acc_z = state_interfaces_[imu_state_indices_[5]].get_value();
-        // }
     }
 
 } // namespace wheeled_bipedal_controller
