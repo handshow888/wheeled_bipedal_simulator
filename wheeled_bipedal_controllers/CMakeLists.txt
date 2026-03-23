@@ -12,6 +12,7 @@ find_package(controller_interface REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 include_directories(include)
 # include(
@@ -32,10 +33,11 @@ add_library(${PROJECT_NAME} SHARED
 )
 
 ament_target_dependencies(${PROJECT_NAME}
-  "rclcpp"
-  "controller_interface"
-  "pluginlib"
-  "rclcpp_lifecycle"
+  rclcpp
+  controller_interface
+  pluginlib
+  rclcpp_lifecycle
+  geometry_msgs
 )
 
 pluginlib_export_plugin_description_file(controller_interface wheeled_bipedal_controller_plugin.xml)
@@ -57,6 +59,7 @@ ament_export_dependencies(
   controller_interface
   pluginlib
   rclcpp_lifecycle
+  geometry_msgs
 )
 
 ament_package()

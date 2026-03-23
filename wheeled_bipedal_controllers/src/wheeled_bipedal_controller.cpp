@@ -58,6 +58,13 @@ namespace wheeled_bipedal_controller
     controller_interface::CallbackReturn WheeledBipedalController::on_configure(const rclcpp_lifecycle::State &previous_state)
     {
         (void)previous_state;
+        auto callback = [this](const geometry_msgs::msg::Point::SharedPtr msg)
+        {
+            invKMotorPosTarget_.clear();
+            invKMotorPosTarget_.push_back(msg->x);
+            invKMotorPosTarget_.push_back(msg->y);
+        };
+        testPointSub_ = get_node()->create_subscription<geometry_msgs::msg::Point>("/test_point", 10, callback);
         return CallbackReturn::SUCCESS;
     }
 
@@ -169,9 +176,23 @@ namespace wheeled_bipedal_controller
         // RCLCPP_INFO(rclcpp::get_logger("MotorCalib"), "motorPos: LF:%.4f LR:%.4f RF:%.4f RR:%.4f\n",
         //             lfMotorStates_.wheelPos, lrMotorStates_.wheelPos,
         //             rfMotorStates_.wheelPos, rrMotorStates_.wheelPos);
+        if (invKMotorPosTarget_.size() == 2)
+        {
+            kinematics::point wheelPosTarget = {invKMotorPosTarget_.at(0), invKMotorPosTarget_.at(1)};
+            double lfMotorPosTarget, lrMotorPosTarget;
+            kinematics::inverseKinematics(wheelPosTarget, lrMotorPosTarget, lfMotorPosTarget);
+            RCLCPP_INFO(get_node()->get_logger(), "wTarget(%.2f,%.2f) phi1:%.2f phi4:%.2f",
+                        wheelPosTarget.x, wheelPosTarget.y, lrMotorPosTarget * rad2deg, lfMotorPosTarget * rad2deg);
 
+            command_interfaces_[0].set_value(lfMotorPosTarget - joints_bias_values_[0]);
+            command_interfaces_[1].set_value(lrMotorPosTarget - joints_bias_values_[1]);
+        }
         kinematics::fwdKinematicsResult leftFwdKResult = kinematics::forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);
-        kinematics::fwdKinematicsResult rightFwdKResult = kinematics::forwardKinematics(rrMotorStates_.position, rfMotorStates_.position);
+        // kinematics::fwdKinematicsResult rightFwdKResult = kinematics::forwardKinematics(rrMotorStates_.position, rfMotorStates_.position);
+
+        RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f L0:%.2f phi0:%.2f",
+                    leftFwdKResult.wheelPos.x, leftFwdKResult.wheelPos.y,
+                    leftFwdKResult.L0, leftFwdKResult.phi0);
 
         // double left_T_target, left_T_p_target;
         // static double leftThetalast = 0.0;
@@ -185,9 +206,9 @@ namespace wheeled_bipedal_controller
         //           leftWheelx, lwMotorStates_.velocity * wheelRadius,
         //           -INS.Pitch, -INS.Gyro[1],
         //           left_T_target, left_T_p_target);
-        RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f|RW x: %.2f y:%.2f",
-                    leftFwdKResult.wheelPos.x, leftFwdKResult.wheelPos.y,
-                    rightFwdKResult.wheelPos.x, rightFwdKResult.wheelPos.y);
+        // RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f|RW x: %.2f y:%.2f",
+        //             leftFwdKResult.wheelPos.x, leftFwdKResult.wheelPos.y,
+        //             rightFwdKResult.wheelPos.x, rightFwdKResult.wheelPos.y);
 
         // update函数运行频率测试
         // static auto lastTime = std::chrono::system_clock::now();

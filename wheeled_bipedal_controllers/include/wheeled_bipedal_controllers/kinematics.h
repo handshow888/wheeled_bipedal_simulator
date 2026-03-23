@@ -8,7 +8,7 @@ namespace kinematics
 {
     typedef struct
     {
-        float x, y;
+        double x, y;
     } point;
 
     typedef struct
@@ -19,7 +19,11 @@ namespace kinematics
         double phi1, phi2, phi3, phi4;
     } fwdKinematicsResult;
 
-    fwdKinematicsResult forwardKinematics(float phi1, float phi4);
+    fwdKinematicsResult forwardKinematics(double phi1, double phi4);
+
+    void inverseKinematics(point wheelPos, double &phi1, double &phi4);
+
+    inline double wrapTo2Pi(double radian);
 
 } // namespace kinematics
 

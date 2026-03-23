@@ -18,6 +18,28 @@ controller_manager:
     wheeled_bipedal_controller:
       type: wheeled_bipedal_controller/WheeledBipedalController
 
+gazebo_ros2_control:
+  ros__parameters:
+    # 必须为每一个使用 position 或 velocity 接口的关节提供 PID
+    pid_gains:
+      position:
+        LF_hip_joint:
+          kp: 10.0
+          ki: 0.1
+          kd: 1.0
+        LR_hip_joint:
+          kp: 10.0
+          ki: 0.1
+          kd: 1.0
+        RF_hip_joint:
+          kp: 10.0
+          ki: 0.1
+          kd: 1.0
+        RR_hip_joint:
+          kp: 10.0
+          ki: 0.1
+          kd: 1.0
+
 imu_sensor_broadcaster:
   ros__parameters:
     sensor_name: "imu_sensor"
@@ -46,23 +68,23 @@ wheeled_bipedal_controller:
         "right_wheel_joint",
       ]
     joints_bias_values: [0.4314, 2.6247, 0.4043, 2.6011] # upper_link关节电机state position和tf的偏差值 bias = tf - state
-    command_interface_type: "effort"
+    command_interface_type: "position" # "position", "velocity", "effort"
     imu_name: "imu_sensor"
-    rod_lengths: [0.150, 0.250, 0.250, 0.150, 0.120] # L1 - L5
-    wheel_radius: 0.07
+    rod_lengths: [0.150, 0.250, 0.250, 0.150, 0.107992374] # L1 - L5
+    wheel_radius: 0.069
     # LQR的K矩阵拟合多项式的系数（从低次项系数到高次项系数排序）
-    K11poly: []
-    K12poly: []
-    K13poly: []
-    K14poly: []
-    K15poly: []
-    K16poly: []
-    K21poly: []
-    K22poly: []
-    K23poly: []
-    K24poly: []
-    K25poly: []
-    K26poly: []
+    K11poly: [0.0]
+    K12poly: [0.0]
+    K13poly: [0.0]
+    K14poly: [0.0]
+    K15poly: [0.0]
+    K16poly: [0.0]
+    K21poly: [0.0]
+    K22poly: [0.0]
+    K23poly: [0.0]
+    K24poly: [0.0]
+    K25poly: [0.0]
+    K26poly: [0.0]
 
 diff_drive_controller:
   ros__parameters:
