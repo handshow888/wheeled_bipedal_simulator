@@ -199,6 +199,7 @@
     <child link="left_wheel_link" />
     <axis xyz="0.0118103395321176 0.999930255507921 0" />
     <dynamics damping="0.05" friction="0.001"/>
+    <limit effort="10.0" velocity="20.0"/>
   </joint>
   <link
     name="LR_upper_link">
@@ -436,6 +437,7 @@
     <child link="right_wheel_link" />
     <axis xyz="0.0118103395321099 0.999930255507921 0" />
     <dynamics damping="0.05" friction="0.001"/>
+    <limit effort="10.0" velocity="20.0"/>
   </joint>
   <link
     name="RR_upper_link">

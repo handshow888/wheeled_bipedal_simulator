@@ -73,35 +73,36 @@ wheeled_bipedal_controller:
     rod_lengths: [0.150, 0.250, 0.250, 0.150, 0.107992374] # L1 - L5
     wheel_radius: 0.069
     # LQR的K矩阵拟合多项式的系数（从低次项系数到高次项系数排序）
-    K11poly: [0.0]
-    K12poly: [0.0]
-    K13poly: [0.0]
-    K14poly: [0.0]
-    K15poly: [0.0]
-    K16poly: [0.0]
-    K21poly: [0.0]
-    K22poly: [0.0]
-    K23poly: [0.0]
-    K24poly: [0.0]
-    K25poly: [0.0]
-    K26poly: [0.0]
+    K11poly: [-1.1978, -45.4403, 47.6030, -50.6243]
+    K12poly: [0.1703, -3.9560, -8.7647, 3.2306]
+    K13poly: [-0.0082, -1.6194, 4.8394, -4.9309]
+    K14poly: [-0.9768, -17.4195, 56.2799, -60.0895]
+    K15poly: [11.4649, -78.1197, 199.5977, -184.4418]
+    K16poly: [1.0542, -5.2648, 10.3159, -8.1729]
+    K21poly: [9.3547, -51.3722, 135.2484, -126.7372]
+    K22poly: [0.3010, 0.6904, -0.0664, -0.2277]
+    K23poly: [0.4868, -2.9069, 7.2831, -6.6365]
+    K24poly: [8.8445, -58.9142, 157.6922, -150.3574]
+    K25poly: [4.5853, 77.7515, -235.2634, 241.2010]
+    K26poly: [0.3307, 5.3812, -15.5858, 15.4343]
+    
     # PID 参数
     # 左腿
     left:
       leg_length_P: 1250.0
       leg_length_I: 1000.0
       leg_length_D: 125.0
-      leg_length: 0.25 # 初始腿长
+      leg_length: 0.20 # 初始腿长
     # 右腿
     right:
       leg_length_P: 1250.0
       leg_length_I: 1000.0
       leg_length_D: 125.0
-      leg_length: 0.25 # 初始腿长
+      leg_length: 0.20 # 初始腿长
     # 左右两腿 phi0 角度差pid控制器
-    delta_phi0_P: 50.0
+    delta_phi0_P: 1.0
     delta_phi0_I: 0.0
-    delta_phi0_D: 1.0
+    delta_phi0_D: 0.1
 
 diff_drive_controller:
   ros__parameters:

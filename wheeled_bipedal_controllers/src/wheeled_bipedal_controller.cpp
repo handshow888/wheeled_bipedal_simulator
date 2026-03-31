@@ -17,18 +17,18 @@ namespace wheeled_bipedal_controller
         imu_name_ = auto_declare<std::string>("imu_name", "imu_sensor");
         rodLengths = auto_declare<std::vector<double>>("rod_lengths", {});
         wheelRadius = auto_declare<double>("wheel_radius", 0.0);
-        K11poly = auto_declare<std::vector<double>>("K11poly", {});
-        K12poly = auto_declare<std::vector<double>>("K12poly", {});
-        K13poly = auto_declare<std::vector<double>>("K13poly", {});
-        K14poly = auto_declare<std::vector<double>>("K14poly", {});
-        K15poly = auto_declare<std::vector<double>>("K15poly", {});
-        K16poly = auto_declare<std::vector<double>>("K16poly", {});
-        K21poly = auto_declare<std::vector<double>>("K21poly", {});
-        K22poly = auto_declare<std::vector<double>>("K22poly", {});
-        K23poly = auto_declare<std::vector<double>>("K23poly", {});
-        K24poly = auto_declare<std::vector<double>>("K24poly", {});
-        K25poly = auto_declare<std::vector<double>>("K25poly", {});
-        K26poly = auto_declare<std::vector<double>>("K26poly", {});
+        LQR::K11poly = auto_declare<std::vector<double>>("K11poly", {});
+        LQR::K12poly = auto_declare<std::vector<double>>("K12poly", {});
+        LQR::K13poly = auto_declare<std::vector<double>>("K13poly", {});
+        LQR::K14poly = auto_declare<std::vector<double>>("K14poly", {});
+        LQR::K15poly = auto_declare<std::vector<double>>("K15poly", {});
+        LQR::K16poly = auto_declare<std::vector<double>>("K16poly", {});
+        LQR::K21poly = auto_declare<std::vector<double>>("K21poly", {});
+        LQR::K22poly = auto_declare<std::vector<double>>("K22poly", {});
+        LQR::K23poly = auto_declare<std::vector<double>>("K23poly", {});
+        LQR::K24poly = auto_declare<std::vector<double>>("K24poly", {});
+        LQR::K25poly = auto_declare<std::vector<double>>("K25poly", {});
+        LQR::K26poly = auto_declare<std::vector<double>>("K26poly", {});
 
         auto_declare<double>("left.leg_length_P", 1250.0);
         auto_declare<double>("left.leg_length_I", 1000.0);
@@ -180,12 +180,16 @@ namespace wheeled_bipedal_controller
     {
         (void)time;
         (void)period;
+        static double initTime = time.seconds();
+
         loadStates();
 
         INS_Task(imuStates_.lin_acc_x, imuStates_.lin_acc_y, imuStates_.lin_acc_z,
                  imuStates_.ang_vel_x, imuStates_.ang_vel_y, imuStates_.ang_vel_z,
                  period.seconds());
 
+        if (time.seconds() - initTime <= 2.0)
+            return controller_interface::return_type::OK;
         // RCLCPP_INFO(rclcpp::get_logger("MotorCalib"), "motorPos: LF:%.4f LR:%.4f RF:%.4f RR:%.4f\n",
         //             lfMotorStates_.wheelPos, lrMotorStates_.wheelPos,
         //             rfMotorStates_.wheelPos, rrMotorStates_.wheelPos);
@@ -216,6 +220,57 @@ namespace wheeled_bipedal_controller
         kinematics::fwdKinematicsResult leftFKResult = kinematics::forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);
         kinematics::fwdKinematicsResult rightFKResult = kinematics::forwardKinematics(rrMotorStates_.position, rfMotorStates_.position);
 
+        // static double leftWheelx = 0.0;
+        // leftWheelx += lwMotorStates_.velocity * wheelRadius * period.seconds(); // 假设vel state是角速度，待测试
+        // static double rightWheelx = 0.0;
+        // rightWheelx += rwMotorStates_.velocity * wheelRadius * period.seconds(); // 假设vel state是角速度，待测试
+        // if ((lwMotorStates_.velocity <= -0.01 || lwMotorStates_.velocity >= 0.01) || (rwMotorStates_.velocity <= -0.01 || rwMotorStates_.velocity >= 0.01))
+        // {
+        //     RCLCPP_INFO(get_node()->get_logger(), "leftXDot:%.6f rightXDot:%.6f leftX:%.6f rightX:%.6f dt:%.3f",
+        //                 lwMotorStates_.velocity * wheelRadius, rwMotorStates_.velocity * wheelRadius,
+        //                 leftWheelx, rightWheelx,
+        //                 period.seconds());
+        // }
+
+        // 左腿LQR
+        double left_T_target = 0.0, left_Tp_target = 0.0;
+        static double leftThetalast = 0.0;
+        double leftTheta = leftFKResult.phi0 + INS.Pitch * deg2rad - M_PI_2;
+        double leftThetaDot = (leftTheta - leftThetalast) / period.seconds();
+        leftThetalast = leftTheta;
+        static double leftWheelx = 0.0;
+        leftWheelx += lwMotorStates_.velocity * wheelRadius * period.seconds();
+        RCLCPP_INFO(get_node()->get_logger(), "theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f",
+                    leftTheta, leftThetaDot,
+                    leftWheelx, lwMotorStates_.velocity * wheelRadius,
+                    -INS.Pitch * deg2rad, -INS.Gyro[1] * deg2rad);
+        LQR::calKmat(leftFKResult.L0);
+        LQR::cal_LQR_u(leftTheta,
+                       leftThetaDot,
+                       leftWheelx,
+                       lwMotorStates_.velocity * wheelRadius,
+                       -INS.Pitch * deg2rad,
+                       -INS.Gyro[1] * deg2rad,
+                       left_T_target, left_Tp_target);
+        RCLCPP_INFO(get_node()->get_logger(), "leftLQR:T:%.2f Tp:%.2f", left_T_target, left_Tp_target);
+        // 右腿LQR
+        double right_T_target = 0.0, right_Tp_target = 0.0;
+        static double rightThetalast = 0.0;
+        double rightTheta = rightFKResult.phi0 + INS.Pitch * deg2rad - M_PI_2;
+        double rightThetaDot = (rightTheta - rightThetalast) / period.seconds();
+        rightThetalast = rightTheta;
+        static double rightWheelx = 0.0;
+        rightWheelx += rwMotorStates_.velocity * wheelRadius * period.seconds();
+        LQR::calKmat(rightFKResult.L0);
+        LQR::cal_LQR_u(rightTheta,
+                       rightThetaDot,
+                       rightWheelx,
+                       rwMotorStates_.velocity * wheelRadius,
+                       -INS.Pitch * deg2rad,
+                       -INS.Gyro[1] * deg2rad,
+                       right_T_target,
+                       right_Tp_target);
+
         double leftVMC_F = leftLegLengthPID.compute(leftLegLengthTarget, leftFKResult.L0, period.seconds());
         double rightVMC_F = rightLegLengthPID.compute(rightLegLengthTarget, rightFKResult.L0, period.seconds());
 
@@ -225,33 +280,23 @@ namespace wheeled_bipedal_controller
         double leftVMC_T1, leftVMC_T2;
         double rightVMC_T1, rightVMC_T2;
 
-        cal_VMC(leftVMC_T1, leftVMC_T2, leftFKResult, leftVMC_F, -deltaPhi0_Tp);
-        cal_VMC(rightVMC_T1, rightVMC_T2, rightFKResult, rightVMC_F, deltaPhi0_Tp);
+        cal_VMC(leftVMC_T1, leftVMC_T2, leftFKResult, leftVMC_F, left_Tp_target - deltaPhi0_Tp);
+        cal_VMC(rightVMC_T1, rightVMC_T2, rightFKResult, rightVMC_F, right_Tp_target + deltaPhi0_Tp);
 
-        RCLCPP_INFO(get_node()->get_logger(), "Tar:%.4f Now:%.4f T1:%.4f T2:%.4f",
-                    leftLegLengthTarget, leftFKResult.L0, leftVMC_T1, leftVMC_T2);
+        // RCLCPP_INFO(get_node()->get_logger(), "Tar:%.4f Now:%.4f T1:%.4f T2:%.4f",
+        //             leftLegLengthTarget, leftFKResult.L0, leftVMC_T1, leftVMC_T2);
 
         command_interfaces_[0].set_value(leftVMC_T2);
         command_interfaces_[1].set_value(leftVMC_T1);
         command_interfaces_[2].set_value(rightVMC_T2);
         command_interfaces_[3].set_value(rightVMC_T1);
+        command_interfaces_[4].set_value(left_T_target);
+        command_interfaces_[5].set_value(right_T_target);
 
         // RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f L0:%.2f phi0:%.2f",
         //             leftFKResult.wheelPos.x, leftFKResult.wheelPos.y,
         //             leftFKResult.L0, leftFKResult.phi0);
 
-        // double left_T_target, left_T_p_target;
-        // static double leftThetalast = 0.0;
-        // double leftTheta = leftFKResult.phi0 + INS.Pitch - M_PI_2;
-        // double leftThetaDot = (leftTheta - leftThetalast) / period.seconds();
-        // leftThetalast = leftTheta;
-        // static double leftWheelx = 0.0;
-        // leftWheelx += lwMotorStates_.velocity * wheelRadius * period.seconds(); // 假设vel state是角速度，待测试
-        // calKmat(leftFKResult.L0);
-        // cal_LQR_u(leftTheta, leftThetaDot,
-        //           leftWheelx, lwMotorStates_.velocity * wheelRadius,
-        //           -INS.Pitch, -INS.Gyro[1],
-        //           left_T_target, left_T_p_target);
         // RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f|RW x: %.2f y:%.2f",
         //             leftFKResult.wheelPos.x, leftFKResult.wheelPos.y,
         //             rightFKResult.wheelPos.x, rightFKResult.wheelPos.y);
