@@ -6,8 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /TF1
-        - /TF1/Tree1/base_footprint1
-        - /TF1/Tree1/base_footprint1/base_link1
       Splitter Ratio: 0.5
     Tree Height: 296
   - Class: rviz_common/Views
@@ -94,15 +92,15 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
         base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         left_wheel_link:
           Alpha: 1
           Show Axes: false
@@ -113,6 +111,10 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        world:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
       Mass Properties:
         Inertia: false
         Mass: false
@@ -142,13 +144,15 @@ Visualization Manager:
           Value: true
         RR_upper_link:
           Value: true
-        base_footprint:
-          Value: true
         base_link:
+          Value: true
+        imu_link:
           Value: true
         left_wheel_link:
           Value: true
         right_wheel_link:
+          Value: true
+        world:
           Value: true
       Marker Scale: 0.20000000298023224
       Name: TF
@@ -156,7 +160,7 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        base_footprint:
+        world:
           base_link:
             LF_upper_link:
               LF_lower_link:
@@ -172,12 +176,14 @@ Visualization Manager:
             RR_upper_link:
               RR_lower_link:
                 {}
+            imu_link:
+              {}
       Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: base_footprint
+    Fixed Frame: base_link
     Frame Rate: 30
   Name: root
   Tools:

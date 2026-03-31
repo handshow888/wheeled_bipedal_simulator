@@ -2,6 +2,11 @@
 
 PIDController::PIDController() : setParams_(false)
 {
+    P_ = 0.0;
+    I_ = 0.0;
+    D_ = 0.0;
+    previousError_ = 0.0;
+    integral_ = 0.0;
 }
 
 PIDController::PIDController(double p, double i, double d) : P_(p), I_(i), D_(d), previousError_(0.0), integral_(0.0), setParams_(true)
@@ -10,6 +15,8 @@ PIDController::PIDController(double p, double i, double d) : P_(p), I_(i), D_(d)
 
 void PIDController::setParams(double p, double i, double d)
 {
+    if (p == P_ && i == I_ && d == D_)
+        return;
     P_ = p;
     I_ = i;
     D_ = d;

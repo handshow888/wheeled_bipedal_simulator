@@ -3,6 +3,7 @@
 #define KINEMATICS_H
 
 #include "structural_params.h"
+#include "utils.h"
 
 namespace kinematics
 {

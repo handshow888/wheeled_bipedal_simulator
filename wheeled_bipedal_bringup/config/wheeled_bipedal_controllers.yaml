@@ -68,7 +68,7 @@ wheeled_bipedal_controller:
         "right_wheel_joint",
       ]
     joints_bias_values: [0.4314, 2.6247, 0.4043, 2.6011] # upper_link关节电机state position和tf的偏差值 bias = tf - state
-    command_interface_type: "position" # "position", "velocity", "effort"
+    command_interface_type: "effort" # "position", "velocity", "effort"
     imu_name: "imu_sensor"
     rod_lengths: [0.150, 0.250, 0.250, 0.150, 0.107992374] # L1 - L5
     wheel_radius: 0.069
@@ -85,6 +85,23 @@ wheeled_bipedal_controller:
     K24poly: [0.0]
     K25poly: [0.0]
     K26poly: [0.0]
+    # PID 参数
+    # 左腿
+    left:
+      leg_length_P: 1250.0
+      leg_length_I: 1000.0
+      leg_length_D: 125.0
+      leg_length: 0.25 # 初始腿长
+    # 右腿
+    right:
+      leg_length_P: 1250.0
+      leg_length_I: 1000.0
+      leg_length_D: 125.0
+      leg_length: 0.25 # 初始腿长
+    # 左右两腿 phi0 角度差pid控制器
+    delta_phi0_P: 50.0
+    delta_phi0_I: 0.0
+    delta_phi0_D: 1.0
 
 diff_drive_controller:
   ros__parameters:

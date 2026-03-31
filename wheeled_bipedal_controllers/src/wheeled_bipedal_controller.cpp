@@ -30,6 +30,19 @@ namespace wheeled_bipedal_controller
         K25poly = auto_declare<std::vector<double>>("K25poly", {});
         K26poly = auto_declare<std::vector<double>>("K26poly", {});
 
+        auto_declare<double>("left.leg_length_P", 1250.0);
+        auto_declare<double>("left.leg_length_I", 1000.0);
+        auto_declare<double>("left.leg_length_D", 125.0);
+        auto_declare<double>("right.leg_length_P", 1250.0);
+        auto_declare<double>("right.leg_length_I", 1000.0);
+        auto_declare<double>("right.leg_length_D", 125.0);
+        leftLegLengthTarget = auto_declare<double>("left.leg_length", 0.25);
+        rightLegLengthTarget = auto_declare<double>("right.leg_length", 0.25);
+
+        auto_declare<double>("delta_phi0_P", 50.0);
+        auto_declare<double>("delta_phi0_I", 0.0);
+        auto_declare<double>("delta_phi0_D", 1.0);
+
         if ((int)joint_names_.size() != 6)
         {
             RCLCPP_ERROR(get_node()->get_logger(), "expected 6 joints, but get %d joints", (int)joint_names_.size());
@@ -58,13 +71,13 @@ namespace wheeled_bipedal_controller
     controller_interface::CallbackReturn WheeledBipedalController::on_configure(const rclcpp_lifecycle::State &previous_state)
     {
         (void)previous_state;
-        auto callback = [this](const geometry_msgs::msg::Point::SharedPtr msg)
-        {
-            invKMotorPosTarget_.clear();
-            invKMotorPosTarget_.push_back(msg->x);
-            invKMotorPosTarget_.push_back(msg->y);
-        };
-        testPointSub_ = get_node()->create_subscription<geometry_msgs::msg::Point>("/test_point", 10, callback);
+        // auto callback = [this](const geometry_msgs::msg::Point::SharedPtr msg)
+        // {
+        //     iKMotorPosTarget_.clear();
+        //     iKMotorPosTarget_.push_back(msg->x);
+        //     iKMotorPosTarget_.push_back(msg->y);
+        // };
+        // testPointSub_ = get_node()->create_subscription<geometry_msgs::msg::Point>("/test_point", 10, callback);
         return CallbackReturn::SUCCESS;
     }
 
@@ -176,39 +189,72 @@ namespace wheeled_bipedal_controller
         // RCLCPP_INFO(rclcpp::get_logger("MotorCalib"), "motorPos: LF:%.4f LR:%.4f RF:%.4f RR:%.4f\n",
         //             lfMotorStates_.wheelPos, lrMotorStates_.wheelPos,
         //             rfMotorStates_.wheelPos, rrMotorStates_.wheelPos);
-        if (invKMotorPosTarget_.size() == 2)
-        {
-            kinematics::point wheelPosTarget = {invKMotorPosTarget_.at(0), invKMotorPosTarget_.at(1)};
-            double lfMotorPosTarget, lrMotorPosTarget;
-            kinematics::inverseKinematics(wheelPosTarget, lrMotorPosTarget, lfMotorPosTarget);
-            RCLCPP_INFO(get_node()->get_logger(), "wTarget(%.2f,%.2f) phi1:%.2f phi4:%.2f",
-                        wheelPosTarget.x, wheelPosTarget.y, lrMotorPosTarget * rad2deg, lfMotorPosTarget * rad2deg);
+        // if (iKMotorPosTarget_.size() == 2)//运动学逆解测试
+        // {
+        //     kinematics::point wheelPosTarget = {iKMotorPosTarget_.at(0), iKMotorPosTarget_.at(1)};
+        //     double lfMotorPosTarget, lrMotorPosTarget;
+        //     kinematics::inverseKinematics(wheelPosTarget, lrMotorPosTarget, lfMotorPosTarget);
+        //     RCLCPP_INFO(get_node()->get_logger(), "wTarget(%.2f,%.2f) phi1:%.2f phi4:%.2f",
+        //                 wheelPosTarget.x, wheelPosTarget.y, lrMotorPosTarget * rad2deg, lfMotorPosTarget * rad2deg);
 
-            command_interfaces_[0].set_value(lfMotorPosTarget - joints_bias_values_[0]);
-            command_interfaces_[1].set_value(lrMotorPosTarget - joints_bias_values_[1]);
-        }
-        kinematics::fwdKinematicsResult leftFwdKResult = kinematics::forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);
-        // kinematics::fwdKinematicsResult rightFwdKResult = kinematics::forwardKinematics(rrMotorStates_.position, rfMotorStates_.position);
+        //     command_interfaces_[0].set_value(lfMotorPosTarget - joints_bias_values_[0]);
+        //     command_interfaces_[1].set_value(lrMotorPosTarget - joints_bias_values_[1]);
+        // }
+        leftLegLengthPID.setParams(get_node()->get_parameter("left.leg_length_P").as_double(),
+                                   get_node()->get_parameter("left.leg_length_I").as_double(),
+                                   get_node()->get_parameter("left.leg_length_D").as_double());
+        leftLegLengthTarget = get_node()->get_parameter("left.leg_length").as_double();
+        rightLegLengthPID.setParams(get_node()->get_parameter("right.leg_length_P").as_double(),
+                                    get_node()->get_parameter("right.leg_length_I").as_double(),
+                                    get_node()->get_parameter("right.leg_length_D").as_double());
+        rightLegLengthTarget = get_node()->get_parameter("right.leg_length").as_double();
 
-        RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f L0:%.2f phi0:%.2f",
-                    leftFwdKResult.wheelPos.x, leftFwdKResult.wheelPos.y,
-                    leftFwdKResult.L0, leftFwdKResult.phi0);
+        deltaPhi0PID.setParams(get_node()->get_parameter("delta_phi0_P").as_double(),
+                               get_node()->get_parameter("delta_phi0_I").as_double(),
+                               get_node()->get_parameter("delta_phi0_D").as_double());
+
+        kinematics::fwdKinematicsResult leftFKResult = kinematics::forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);
+        kinematics::fwdKinematicsResult rightFKResult = kinematics::forwardKinematics(rrMotorStates_.position, rfMotorStates_.position);
+
+        double leftVMC_F = leftLegLengthPID.compute(leftLegLengthTarget, leftFKResult.L0, period.seconds());
+        double rightVMC_F = rightLegLengthPID.compute(rightLegLengthTarget, rightFKResult.L0, period.seconds());
+
+        double deltaPhi0 = rightFKResult.phi0 - leftFKResult.phi0;
+        double deltaPhi0_Tp = deltaPhi0PID.compute(0.0, deltaPhi0, period.seconds());
+
+        double leftVMC_T1, leftVMC_T2;
+        double rightVMC_T1, rightVMC_T2;
+
+        cal_VMC(leftVMC_T1, leftVMC_T2, leftFKResult, leftVMC_F, -deltaPhi0_Tp);
+        cal_VMC(rightVMC_T1, rightVMC_T2, rightFKResult, rightVMC_F, deltaPhi0_Tp);
+
+        RCLCPP_INFO(get_node()->get_logger(), "Tar:%.4f Now:%.4f T1:%.4f T2:%.4f",
+                    leftLegLengthTarget, leftFKResult.L0, leftVMC_T1, leftVMC_T2);
+
+        command_interfaces_[0].set_value(leftVMC_T2);
+        command_interfaces_[1].set_value(leftVMC_T1);
+        command_interfaces_[2].set_value(rightVMC_T2);
+        command_interfaces_[3].set_value(rightVMC_T1);
+
+        // RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f L0:%.2f phi0:%.2f",
+        //             leftFKResult.wheelPos.x, leftFKResult.wheelPos.y,
+        //             leftFKResult.L0, leftFKResult.phi0);
 
         // double left_T_target, left_T_p_target;
         // static double leftThetalast = 0.0;
-        // double leftTheta = leftFwdKResult.phi0 + INS.Pitch - M_PI_2;
+        // double leftTheta = leftFKResult.phi0 + INS.Pitch - M_PI_2;
         // double leftThetaDot = (leftTheta - leftThetalast) / period.seconds();
         // leftThetalast = leftTheta;
         // static double leftWheelx = 0.0;
         // leftWheelx += lwMotorStates_.velocity * wheelRadius * period.seconds(); // 假设vel state是角速度，待测试
-        // calKmat(leftFwdKResult.L0);
+        // calKmat(leftFKResult.L0);
         // cal_LQR_u(leftTheta, leftThetaDot,
         //           leftWheelx, lwMotorStates_.velocity * wheelRadius,
         //           -INS.Pitch, -INS.Gyro[1],
         //           left_T_target, left_T_p_target);
         // RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f|RW x: %.2f y:%.2f",
-        //             leftFwdKResult.wheelPos.x, leftFwdKResult.wheelPos.y,
-        //             rightFwdKResult.wheelPos.x, rightFwdKResult.wheelPos.y);
+        //             leftFKResult.wheelPos.x, leftFKResult.wheelPos.y,
+        //             rightFKResult.wheelPos.x, rightFKResult.wheelPos.y);
 
         // update函数运行频率测试
         // static auto lastTime = std::chrono::system_clock::now();

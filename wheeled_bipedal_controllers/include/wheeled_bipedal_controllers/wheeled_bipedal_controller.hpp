@@ -12,6 +12,7 @@
 #include "wheeled_bipedal_controllers/LQR.h"
 #include "wheeled_bipedal_controllers/VMC.h"
 #include "wheeled_bipedal_controllers/structural_params.h"
+#include "wheeled_bipedal_controllers/pid_controller.hpp"
 
 
 namespace wheeled_bipedal_controller
@@ -52,7 +53,12 @@ namespace wheeled_bipedal_controller
 
     private:
         rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr testPointSub_;
-        std::vector<double> invKMotorPosTarget_;
+        // std::vector<double> iKMotorPosTarget_;
+
+        PIDController leftLegLengthPID, rightLegLengthPID;
+        double leftLegLengthTarget, rightLegLengthTarget;
+
+        PIDController deltaPhi0PID;
 
 
 
