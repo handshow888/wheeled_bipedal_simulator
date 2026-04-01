@@ -17,6 +17,8 @@ public:
     void setParams(double p, double i, double d);
 
     double compute(double targetValue, double nowValue, double dt);
+
+    double clear();
 };
 
 #endif

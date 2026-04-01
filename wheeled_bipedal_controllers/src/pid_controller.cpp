@@ -37,3 +37,10 @@ double PIDController::compute(double targetValue, double nowValue, double dt)
     previousError_ = error;                                              // 更新上一次误差
     return output;
 }
+
+double PIDController::clear()
+{
+    previousError_ = 0.0;
+    integral_ = 0.0;
+    return 0.0;
+}

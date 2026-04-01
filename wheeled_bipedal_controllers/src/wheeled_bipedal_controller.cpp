@@ -49,6 +49,9 @@ namespace wheeled_bipedal_controller
         angularVelPID.setParams(auto_declare<double>("angular_vel_P", 0.0),
                                 auto_declare<double>("angular_vel_I", 0.0),
                                 auto_declare<double>("angular_vel_D", 0.0));
+        rollErrPID.setParams(auto_declare<double>("roll_error_P", 0.0),
+                             auto_declare<double>("roll_error_I", 0.0),
+                             auto_declare<double>("roll_error_D", 0.0));
 
         if ((int)joint_names_.size() != 6)
         {
@@ -255,6 +258,9 @@ namespace wheeled_bipedal_controller
             angularVelPID.setParams(get_node()->get_parameter("angular_vel_P").as_double(),
                                     get_node()->get_parameter("angular_vel_I").as_double(),
                                     get_node()->get_parameter("angular_vel_D").as_double());
+            rollErrPID.setParams(get_node()->get_parameter("roll_error_P").as_double(),
+                                 get_node()->get_parameter("roll_error_I").as_double(),
+                                 get_node()->get_parameter("roll_error_D").as_double());
         }
 
         kinematics::fwdKinematicsResult leftFKResult = kinematics::forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);
@@ -290,16 +296,37 @@ namespace wheeled_bipedal_controller
         double robotAngularVel = (rightWheelVel - leftWheelVel) / wheelSeparation;
 
         double angularVel_T = angularVelPID.compute(recCmdVel_.angular.z, robotAngularVel, dt);
-        RCLCPP_INFO(get_node()->get_logger(), "angularTarget:%.3f now:%.3f T:%.3f",
-                    recCmdVel_.angular.z, robotAngularVel, angularVel_T);
+        // RCLCPP_INFO(get_node()->get_logger(), "angularTarget:%.3f now:%.3f T:%.3f",
+        //             recCmdVel_.angular.z, robotAngularVel, angularVel_T);
 
-        double leftVMC_F = leftLegLengthPID.compute(leftLegLengthTarget_, leftFKResult.L0, dt);
-        double rightVMC_F = rightLegLengthPID.compute(rightLegLengthTarget_, rightFKResult.L0, dt);
+        double rollCompensation = rollErrPID.compute(0.0, INS.Roll * deg2rad, dt);
+        if (abs(INS.Pitch) > 10.0)
+        {
+            rollCompensation = rollErrPID.clear();
+        }
+        RCLCPP_INFO(get_node()->get_logger(), "(deg)R:%.3f P:%.3f Y:%.3f rollCompensation:%.3f", INS.Roll, INS.Pitch, INS.Yaw, rollCompensation);
+        double leftLegLengthCpstTarget = clamp(leftLegLengthTarget_ + rollCompensation, legLengthMin, legLengthMax);
+        double rightLegLengthCpstTarget = clamp(rightLegLengthTarget_ - rollCompensation, legLengthMin, legLengthMax);
+        double leftVMC_F = leftLegLengthPID.compute(leftLegLengthCpstTarget, leftFKResult.L0, dt);
+        double rightVMC_F = rightLegLengthPID.compute(rightLegLengthCpstTarget, rightFKResult.L0, dt);
+        // if (leftFKResult.L0 <= legLengthMin)
+        // {
+        //     rightLegLengthTarget_ = clamp(rightLegLengthTarget_ * 1.1, legLengthMin, legLengthMax);
+        //     get_node()->set_parameter(rclcpp::Parameter("right.leg_length", rightLegLengthTarget_));
+        // }
+        // else if (rightFKResult.L0 <= legLengthMin)
+        // {
+        //     leftLegLengthTarget_ = clamp(leftLegLengthTarget_ * 1.1, legLengthMin, legLengthMax);
+        //     get_node()->set_parameter(rclcpp::Parameter("left.leg_length", leftLegLengthTarget_));
+        // }
+
+        // double leftVMC_F = leftLegLengthPID.compute(leftLegLengthTarget_, leftFKResult.L0, dt);
+        // double rightVMC_F = rightLegLengthPID.compute(rightLegLengthTarget_, rightFKResult.L0, dt);
 
         double deltaPhi0 = rightFKResult.phi0 - leftFKResult.phi0;
         double deltaPhi0_Tp = deltaPhi0PID.compute(0.0, deltaPhi0, dt);
-        RCLCPP_INFO(get_node()->get_logger(), "deltaPhi0:%.3f deltaPhi0_Tp:%.3f",
-                    deltaPhi0, deltaPhi0_Tp);
+        // RCLCPP_INFO(get_node()->get_logger(), "deltaPhi0:%.3f deltaPhi0_Tp:%.3f",
+        //             deltaPhi0, deltaPhi0_Tp);
 
         // 左腿LQR
         double left_T_target = 0.0, left_Tp_target = 0.0;
@@ -327,8 +354,11 @@ namespace wheeled_bipedal_controller
         double leftVMC_T1, leftVMC_T2;
         double rightVMC_T1, rightVMC_T2;
 
-        cal_VMC(leftVMC_T1, leftVMC_T2, leftFKResult, leftVMC_F, left_Tp_target - deltaPhi0_Tp);
-        cal_VMC(rightVMC_T1, rightVMC_T2, rightFKResult, rightVMC_F, right_Tp_target + deltaPhi0_Tp);
+        // cal_VMC(leftVMC_T1, leftVMC_T2, leftFKResult, leftVMC_F, left_Tp_target - deltaPhi0_Tp);
+        // cal_VMC(rightVMC_T1, rightVMC_T2, rightFKResult, rightVMC_F, right_Tp_target + deltaPhi0_Tp);
+
+        cal_VMC(leftVMC_T1, leftVMC_T2, leftFKResult, leftVMC_F + rollCompensation, left_Tp_target - deltaPhi0_Tp);
+        cal_VMC(rightVMC_T1, rightVMC_T2, rightFKResult, rightVMC_F - rollCompensation, right_Tp_target + deltaPhi0_Tp);
 
         // RCLCPP_INFO(get_node()->get_logger(), "Tar:%.4f Now:%.4f T1:%.4f T2:%.4f",
         //             leftLegLengthTarget_, leftFKResult.L0, leftVMC_T1, leftVMC_T2);
@@ -364,25 +394,57 @@ namespace wheeled_bipedal_controller
 
     void WheeledBipedalController::joyCB(sensor_msgs::msg::Joy::SharedPtr msg)
     {
-        if (abs(msg->axes.at(3)) < 0.1)
+        // const int axeJoystickLeftLRIdx = 0;
+        const int axeJoystickLeftUDIdx = 1;
+        const int axeJoystickRightLRIdx = 2;
+        const int axeJoystickRightUDIdx = 3;
+        // const int axeTriggerRightIdx = 4;
+        // const int axeTriggerLeftIdx = 5;
+        // const int axeArrowLRIdx = 6;
+        // const int axeArrowUDIdx = 7;
+        const int buttonAIdx = 0;
+        const int buttonBIdx = 1;
+        // const int buttonXIdx = 3;
+        // const int buttonYIdx = 4;
+        // const int buttonLBIdx = 6;
+        const int buttonRBIdx = 7;
+        
+        static uint8_t lastButtonA = 0;
+        static uint8_t lastButtonB = 0;
+        static bool spin = false;
+        static int spinDir = 1;
+
+        // 右摇杆上下
+        if (abs(msg->axes.at(axeJoystickRightUDIdx)) < 0.1)
             recCmdVel_.linear.x = 0.0;
         else
             recCmdVel_.linear.x = lowPassFilter(msg->axes.at(3), recCmdVel_.linear.x, 0.5);
-
-        if (abs(msg->axes.at(2)) < 0.1)
-            recCmdVel_.angular.z = 0.0;
-        else
-            recCmdVel_.angular.z = lowPassFilter(msg->axes.at(2) * 5.0, recCmdVel_.angular.z, 0.1);
-
-        if (abs(msg->axes.at(1)) > 0.1)
+        // 左摇杆上下
+        if (abs(msg->axes.at(axeJoystickLeftUDIdx)) > 0.1)
         {
             double legLengthIncrement = msg->axes.at(1) * 0.05;
             double newLegLength = get_node()->get_parameter("left.leg_length").as_double() + legLengthIncrement;
-            if (newLegLength < legLengthMin)
-                newLegLength = legLengthMin;
-            else if (newLegLength > legLengthMax)
-                newLegLength = legLengthMax;
+            newLegLength = clamp(newLegLength, legLengthMin, legLengthMax);
             get_node()->set_parameter(rclcpp::Parameter("left.leg_length", newLegLength));
+        }
+        // 按键A
+        if (lastButtonA == 1 && msg->buttons.at(buttonAIdx) == 0)
+            spin = !spin;
+        lastButtonA = msg->buttons.at(buttonAIdx);
+        // 按键B
+        if (lastButtonB == 1 && msg->buttons.at(buttonBIdx) == 0)
+            spinDir = -spinDir;
+        lastButtonB = msg->buttons.at(buttonBIdx);
+
+        if (spin)
+            recCmdVel_.angular.z = 5.0 * spinDir;
+        else
+        {
+            // 右摇杆左右
+            if (abs(msg->axes.at(axeJoystickRightLRIdx)) < 0.2)
+                recCmdVel_.angular.z = 0.0;
+            else if (msg->buttons.at(buttonRBIdx) == 0) // RB按下时锁定旋转速度
+                recCmdVel_.angular.z = lowPassFilter(msg->axes.at(2) * 5.0, recCmdVel_.angular.z, 0.1);
         }
     }
 

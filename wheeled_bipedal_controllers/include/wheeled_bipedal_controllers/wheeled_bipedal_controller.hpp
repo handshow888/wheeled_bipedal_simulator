@@ -61,23 +61,28 @@ namespace wheeled_bipedal_controller
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmdVelSub_;
         double recCmdVelTime_ = 0.0;
         geometry_msgs::msg::Twist recCmdVel_;
-        PIDController angularVelPID;
 
+        PIDController angularVelPID; // 角速度控制
+
+        // 腿高控制
         PIDController leftLegLengthPID, rightLegLengthPID;
         double leftLegLengthTarget_, rightLegLengthTarget_;
         bool rightLegSameWithLeft_;
 
-        PIDController deltaPhi0PID;
+        // roll角误差控制
+        PIDController rollErrPID;
+        double rollErr_;
 
-        bool debug_;
+        PIDController deltaPhi0PID; // 防劈叉控制
 
+        bool debug_; // 是否在update函数中实时获取动态参数
+
+        // ros2_control 参数
         std::vector<std::string> joint_names_, state_interface_names_;
         std::string command_interface_name_, imu_name_;
-        std::vector<double> joints_bias_values_ = {0.0, 0.0, 0.0, 0.0}; // 关节电机实际角度与tf角度偏差（rad）
-
+        std::vector<double> joints_bias_values_ = {0.0, 0.0, 0.0, 0.0};                                             // 关节电机实际角度与tf角度偏差（rad）
         motorStates lfMotorStates_, lrMotorStates_, rfMotorStates_, rrMotorStates_, lwMotorStates_, rwMotorStates_; // 存储各电机状态值
         imuStates imuStates_;
-
         // 用于保存 motor 各个状态接口的索引
         std::vector<size_t> lf_motor_state_indices_, lr_motor_state_indices_, rf_motor_state_indices_, rr_motor_state_indices_; // 关节电机
         std::vector<size_t> lw_motor_state_indices_, rw_motor_state_indices_;                                                   // 轮毂电机
