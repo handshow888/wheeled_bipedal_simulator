@@ -284,27 +284,28 @@ namespace wheeled_bipedal_controller
             leftWheelx = 0.0;
             rightWheelx = 0.0;
         }
-        // RCLCPP_INFO(get_node()->get_logger(), "\nL:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f\nR:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f",
-        //             leftTheta, leftThetaDot,
-        //             leftWheelx, leftWheelVel,
-        //             -INS.Pitch * deg2rad, -INS.Gyro[1] * deg2rad,
-        //             rightTheta * rad2deg, rightThetaDot * rad2deg,
-        //             rightWheelx, rightWheelVel,
-        //             -INS.Pitch, -INS.Gyro[1]);
+        RCLCPP_INFO(get_node()->get_logger(), "\nL:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f\nR:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f",
+                    leftTheta, leftThetaDot,
+                    leftWheelx, leftWheelVel,
+                    -INS.Pitch * deg2rad, -INS.Gyro[1],
+                    rightTheta * rad2deg, rightThetaDot * rad2deg,
+                    rightWheelx, rightWheelVel,
+                    -INS.Pitch, -INS.Gyro[1] * rad2deg);
 
-        double robotLinearVel = (leftWheelVel + rightWheelVel) * 0.5;
-        double robotAngularVel = (rightWheelVel - leftWheelVel) / wheelSeparation;
+        // double robotLinearVel = (leftWheelVel + rightWheelVel) * 0.5;
+        // double robotAngularVel = (rightWheelVel - leftWheelVel) / wheelSeparation;
+        double robotAngularVel = INS.Gyro[2];
 
         double angularVel_T = angularVelPID.compute(recCmdVel_.angular.z, robotAngularVel, dt);
-        // RCLCPP_INFO(get_node()->get_logger(), "angularTarget:%.3f now:%.3f T:%.3f",
-        //             recCmdVel_.angular.z, robotAngularVel, angularVel_T);
+        // RCLCPP_INFO(get_node()->get_logger(), "angularTarget:%.3f now:%.3f GyroZ:%.3f T:%.3f",
+        //             recCmdVel_.angular.z, robotAngularVel, INS.Gyro[2], angularVel_T);
 
         double rollCompensation = rollErrPID.compute(0.0, INS.Roll * deg2rad, dt);
         if (abs(INS.Pitch) > 10.0)
         {
             rollCompensation = rollErrPID.clear();
         }
-        RCLCPP_INFO(get_node()->get_logger(), "(deg)R:%.3f P:%.3f Y:%.3f rollCompensation:%.3f", INS.Roll, INS.Pitch, INS.Yaw, rollCompensation);
+        // RCLCPP_INFO(get_node()->get_logger(), "(deg)R:%.3f P:%.3f Y:%.3f rollCompensation:%.3f", INS.Roll, INS.Pitch, INS.Yaw, rollCompensation);
         double leftLegLengthCpstTarget = clamp(leftLegLengthTarget_ + rollCompensation, legLengthMin, legLengthMax);
         double rightLegLengthCpstTarget = clamp(rightLegLengthTarget_ - rollCompensation, legLengthMin, legLengthMax);
         double leftVMC_F = leftLegLengthPID.compute(leftLegLengthCpstTarget, leftFKResult.L0, dt);
@@ -408,7 +409,7 @@ namespace wheeled_bipedal_controller
         // const int buttonYIdx = 4;
         // const int buttonLBIdx = 6;
         const int buttonRBIdx = 7;
-        
+
         static uint8_t lastButtonA = 0;
         static uint8_t lastButtonB = 0;
         static bool spin = false;
