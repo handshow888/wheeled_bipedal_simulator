@@ -17,6 +17,7 @@ namespace wheeled_bipedal_controller
         imu_name_ = auto_declare<std::string>("imu_name", "imu_sensor");
         rodLengths = auto_declare<std::vector<double>>("rod_lengths", {});
         wheelRadius = auto_declare<double>("wheel_radius", 0.0);
+        wheelSeparation = auto_declare<double>("wheel_separation", 0.0);
         LQR::K11poly = auto_declare<std::vector<double>>("K11poly", {});
         LQR::K12poly = auto_declare<std::vector<double>>("K12poly", {});
         LQR::K13poly = auto_declare<std::vector<double>>("K13poly", {});
@@ -30,18 +31,25 @@ namespace wheeled_bipedal_controller
         LQR::K25poly = auto_declare<std::vector<double>>("K25poly", {});
         LQR::K26poly = auto_declare<std::vector<double>>("K26poly", {});
 
-        auto_declare<double>("left.leg_length_P", 1250.0);
-        auto_declare<double>("left.leg_length_I", 1000.0);
-        auto_declare<double>("left.leg_length_D", 125.0);
-        auto_declare<double>("right.leg_length_P", 1250.0);
-        auto_declare<double>("right.leg_length_I", 1000.0);
-        auto_declare<double>("right.leg_length_D", 125.0);
-        leftLegLengthTarget = auto_declare<double>("left.leg_length", 0.25);
-        rightLegLengthTarget = auto_declare<double>("right.leg_length", 0.25);
-
-        auto_declare<double>("delta_phi0_P", 50.0);
-        auto_declare<double>("delta_phi0_I", 0.0);
-        auto_declare<double>("delta_phi0_D", 1.0);
+        debug_ = auto_declare<bool>("debug", true);
+        rightLegSameWithLeft_ = auto_declare<bool>("right.same_with_left", true);
+        leftLegLengthTarget_ = auto_declare<double>("left.leg_length", 0.25);
+        rightLegLengthTarget_ = auto_declare<double>("right.leg_length", 0.25);
+        leftLegLengthPID.setParams(auto_declare<double>("left.leg_length_P", 1250.0),
+                                   auto_declare<double>("left.leg_length_I", 1000.0),
+                                   auto_declare<double>("left.leg_length_D", 125.0));
+        rightLegLengthPID.setParams(auto_declare<double>("right.leg_length_P", 1250.0),
+                                    auto_declare<double>("right.leg_length_I", 1000.0),
+                                    auto_declare<double>("right.leg_length_D", 125.0));
+        deltaPhi0PID.setParams(auto_declare<double>("delta_phi0_P", 50.0),
+                               auto_declare<double>("delta_phi0_I", 0.0),
+                               auto_declare<double>("delta_phi0_D", 1.0));
+        LinearVelPID.setParams(auto_declare<double>("linear_vel_P", 0.0),
+                               auto_declare<double>("linear_vel_I", 0.0),
+                               auto_declare<double>("linear_vel_D", 0.0));
+        angularVelPID.setParams(auto_declare<double>("angular_vel_P", 0.0),
+                                auto_declare<double>("angular_vel_I", 0.0),
+                                auto_declare<double>("angular_vel_D", 0.0));
 
         if ((int)joint_names_.size() != 6)
         {
@@ -63,6 +71,11 @@ namespace wheeled_bipedal_controller
             RCLCPP_ERROR(get_node()->get_logger(), "expected correct wheel_radius, but get value: %.2f", wheelRadius);
             return CallbackReturn::ERROR;
         }
+        if (wheelSeparation <= 0.0)
+        {
+            RCLCPP_ERROR(get_node()->get_logger(), "expected correct wheel_separation, but get value: %.2f", wheelSeparation);
+            return CallbackReturn::ERROR;
+        }
 
         return CallbackReturn::SUCCESS;
     }
@@ -78,6 +91,13 @@ namespace wheeled_bipedal_controller
         //     iKMotorPosTarget_.push_back(msg->y);
         // };
         // testPointSub_ = get_node()->create_subscription<geometry_msgs::msg::Point>("/test_point", 10, callback);
+        auto cmdVelCB = [this](const geometry_msgs::msg::Twist::SharedPtr msg)
+        {
+            recCmdVelTime_ = get_node()->now().seconds();
+            recCmdVel_ = *msg;
+        };
+        cmdVelSub_ = get_node()->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel", 10, cmdVelCB);
+        velStatePub_ = get_node()->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel_state", 10);
         return CallbackReturn::SUCCESS;
     }
 
@@ -178,15 +198,18 @@ namespace wheeled_bipedal_controller
 
     controller_interface::return_type WheeledBipedalController::update(const rclcpp::Time &time, const rclcpp::Duration &period)
     {
-        (void)time;
-        (void)period;
+        // (void)time;
+        // (void)period;
         static double initTime = time.seconds();
 
         loadStates();
+        double leftWheelVel = lwMotorStates_.velocity * wheelRadius;
+        double rightWheelVel = rwMotorStates_.velocity * wheelRadius;
+        double dt = period.seconds();
 
         INS_Task(imuStates_.lin_acc_x, imuStates_.lin_acc_y, imuStates_.lin_acc_z,
                  imuStates_.ang_vel_x, imuStates_.ang_vel_y, imuStates_.ang_vel_z,
-                 period.seconds());
+                 dt);
 
         if (time.seconds() - initTime <= 2.0)
             return controller_interface::return_type::OK;
@@ -204,78 +227,112 @@ namespace wheeled_bipedal_controller
         //     command_interfaces_[0].set_value(lfMotorPosTarget - joints_bias_values_[0]);
         //     command_interfaces_[1].set_value(lrMotorPosTarget - joints_bias_values_[1]);
         // }
-        leftLegLengthPID.setParams(get_node()->get_parameter("left.leg_length_P").as_double(),
-                                   get_node()->get_parameter("left.leg_length_I").as_double(),
-                                   get_node()->get_parameter("left.leg_length_D").as_double());
-        leftLegLengthTarget = get_node()->get_parameter("left.leg_length").as_double();
-        rightLegLengthPID.setParams(get_node()->get_parameter("right.leg_length_P").as_double(),
-                                    get_node()->get_parameter("right.leg_length_I").as_double(),
-                                    get_node()->get_parameter("right.leg_length_D").as_double());
-        rightLegLengthTarget = get_node()->get_parameter("right.leg_length").as_double();
+        if (debug_)
+        {
+            rightLegSameWithLeft_ = get_node()->get_parameter("right.same_with_left").as_bool();
+            leftLegLengthPID.setParams(get_node()->get_parameter("left.leg_length_P").as_double(),
+                                       get_node()->get_parameter("left.leg_length_I").as_double(),
+                                       get_node()->get_parameter("left.leg_length_D").as_double());
+            leftLegLengthTarget_ = get_node()->get_parameter("left.leg_length").as_double();
+            if (rightLegSameWithLeft_)
+            {
+                rightLegLengthPID.setParams(get_node()->get_parameter("left.leg_length_P").as_double(),
+                                            get_node()->get_parameter("left.leg_length_I").as_double(),
+                                            get_node()->get_parameter("left.leg_length_D").as_double());
+                rightLegLengthTarget_ = leftLegLengthTarget_;
+            }
+            else
+            {
+                rightLegLengthPID.setParams(get_node()->get_parameter("right.leg_length_P").as_double(),
+                                            get_node()->get_parameter("right.leg_length_I").as_double(),
+                                            get_node()->get_parameter("right.leg_length_D").as_double());
+                rightLegLengthTarget_ = get_node()->get_parameter("right.leg_length").as_double();
+            }
 
-        deltaPhi0PID.setParams(get_node()->get_parameter("delta_phi0_P").as_double(),
-                               get_node()->get_parameter("delta_phi0_I").as_double(),
-                               get_node()->get_parameter("delta_phi0_D").as_double());
+            deltaPhi0PID.setParams(get_node()->get_parameter("delta_phi0_P").as_double(),
+                                   get_node()->get_parameter("delta_phi0_I").as_double(),
+                                   get_node()->get_parameter("delta_phi0_D").as_double());
+
+            LinearVelPID.setParams(get_node()->get_parameter("linear_vel_P").as_double(),
+                                   get_node()->get_parameter("linear_vel_I").as_double(),
+                                   get_node()->get_parameter("linear_vel_D").as_double());
+            angularVelPID.setParams(get_node()->get_parameter("angular_vel_P").as_double(),
+                                    get_node()->get_parameter("angular_vel_I").as_double(),
+                                    get_node()->get_parameter("angular_vel_D").as_double());
+        }
 
         kinematics::fwdKinematicsResult leftFKResult = kinematics::forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);
         kinematics::fwdKinematicsResult rightFKResult = kinematics::forwardKinematics(rrMotorStates_.position, rfMotorStates_.position);
 
-        // static double leftWheelx = 0.0;
-        // leftWheelx += lwMotorStates_.velocity * wheelRadius * period.seconds(); // 假设vel state是角速度，待测试
-        // static double rightWheelx = 0.0;
-        // rightWheelx += rwMotorStates_.velocity * wheelRadius * period.seconds(); // 假设vel state是角速度，待测试
-        // if ((lwMotorStates_.velocity <= -0.01 || lwMotorStates_.velocity >= 0.01) || (rwMotorStates_.velocity <= -0.01 || rwMotorStates_.velocity >= 0.01))
-        // {
-        //     RCLCPP_INFO(get_node()->get_logger(), "leftXDot:%.6f rightXDot:%.6f leftX:%.6f rightX:%.6f dt:%.3f",
-        //                 lwMotorStates_.velocity * wheelRadius, rwMotorStates_.velocity * wheelRadius,
-        //                 leftWheelx, rightWheelx,
-        //                 period.seconds());
-        // }
+        static double leftThetalast = 0.0;
+        double leftTheta = leftFKResult.phi0 + INS.Pitch * deg2rad - M_PI_2;
+        double leftThetaDot = (leftTheta - leftThetalast) / dt;
+        leftThetalast = leftTheta;
+        static double leftWheelx = 0.0;
+        leftWheelx += leftWheelVel * dt;
+        static double rightThetalast = 0.0;
+        double rightTheta = rightFKResult.phi0 + INS.Pitch * deg2rad - M_PI_2;
+        double rightThetaDot = (rightTheta - rightThetalast) / dt;
+        rightThetalast = rightTheta;
+        static double rightWheelx = 0.0;
+        rightWheelx += rightWheelVel * dt;
+
+        if (recCmdVel_.linear.x != 0.0 || recCmdVel_.angular.z != 0.0)
+        {
+            leftWheelx = 0.0;
+            rightWheelx = 0.0;
+        }
+        // RCLCPP_INFO(get_node()->get_logger(), "\nL:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f\nR:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f",
+        //             leftTheta, leftThetaDot,
+        //             leftWheelx, leftWheelVel,
+        //             -INS.Pitch * deg2rad, -INS.Gyro[1] * deg2rad,
+        //             rightTheta * rad2deg, rightThetaDot * rad2deg,
+        //             rightWheelx, rightWheelVel,
+        //             -INS.Pitch, -INS.Gyro[1]);
+
+        double robotLinearVel = (leftWheelVel + rightWheelVel) * 0.5;
+        double robotAngularVel = (rightWheelVel - leftWheelVel) / wheelSeparation;
+
+        double angularVel_T = angularVelPID.compute(recCmdVel_.angular.z, robotAngularVel, dt);
+        RCLCPP_INFO(get_node()->get_logger(), "angularTarget:%.3f now:%.3f T:%.3f",
+                    recCmdVel_.angular.z, robotAngularVel, angularVel_T);
+
+        // geometry_msgs::msg::Twist cmdVelStateMsg;
+        // cmdVelStateMsg.linear.x = recCmdVel_.linear.x;
+        // cmdVelStateMsg.angular.x = robotLinearVel;
+        // cmdVelStateMsg.angular.z = LinearVel_T;
+        // velStatePub_->publish(cmdVelStateMsg);
+
+        double leftVMC_F = leftLegLengthPID.compute(leftLegLengthTarget_, leftFKResult.L0, dt);
+        double rightVMC_F = rightLegLengthPID.compute(rightLegLengthTarget_, rightFKResult.L0, dt);
+
+        double deltaPhi0 = rightFKResult.phi0 - leftFKResult.phi0;
+        double deltaPhi0_Tp = deltaPhi0PID.compute(0.0, deltaPhi0, dt);
+        RCLCPP_INFO(get_node()->get_logger(), "deltaPhi0:%.3f deltaPhi0_Tp:%.3f",
+                    deltaPhi0, deltaPhi0_Tp);
 
         // 左腿LQR
         double left_T_target = 0.0, left_Tp_target = 0.0;
-        static double leftThetalast = 0.0;
-        double leftTheta = leftFKResult.phi0 + INS.Pitch * deg2rad - M_PI_2;
-        double leftThetaDot = (leftTheta - leftThetalast) / period.seconds();
-        leftThetalast = leftTheta;
-        static double leftWheelx = 0.0;
-        leftWheelx += lwMotorStates_.velocity * wheelRadius * period.seconds();
-        RCLCPP_INFO(get_node()->get_logger(), "theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f",
-                    leftTheta, leftThetaDot,
-                    leftWheelx, lwMotorStates_.velocity * wheelRadius,
-                    -INS.Pitch * deg2rad, -INS.Gyro[1] * deg2rad);
         LQR::calKmat(leftFKResult.L0);
         LQR::cal_LQR_u(leftTheta,
                        leftThetaDot,
-                       leftWheelx,
-                       lwMotorStates_.velocity * wheelRadius,
+                       0 * leftWheelx,
+                       leftWheelVel - recCmdVel_.linear.x + recCmdVel_.angular.z * wheelSeparation,
                        -INS.Pitch * deg2rad,
                        -INS.Gyro[1] * deg2rad,
                        left_T_target, left_Tp_target);
-        RCLCPP_INFO(get_node()->get_logger(), "leftLQR:T:%.2f Tp:%.2f", left_T_target, left_Tp_target);
+        // RCLCPP_INFO(get_node()->get_logger(), "leftLQR:T:%.2f Tp:%.2f", left_T_target, left_Tp_target);
         // 右腿LQR
         double right_T_target = 0.0, right_Tp_target = 0.0;
-        static double rightThetalast = 0.0;
-        double rightTheta = rightFKResult.phi0 + INS.Pitch * deg2rad - M_PI_2;
-        double rightThetaDot = (rightTheta - rightThetalast) / period.seconds();
-        rightThetalast = rightTheta;
-        static double rightWheelx = 0.0;
-        rightWheelx += rwMotorStates_.velocity * wheelRadius * period.seconds();
         LQR::calKmat(rightFKResult.L0);
         LQR::cal_LQR_u(rightTheta,
                        rightThetaDot,
-                       rightWheelx,
-                       rwMotorStates_.velocity * wheelRadius,
+                       0 * rightWheelx,
+                       rightWheelVel - recCmdVel_.linear.x - recCmdVel_.angular.z * wheelSeparation,
                        -INS.Pitch * deg2rad,
                        -INS.Gyro[1] * deg2rad,
                        right_T_target,
                        right_Tp_target);
-
-        double leftVMC_F = leftLegLengthPID.compute(leftLegLengthTarget, leftFKResult.L0, period.seconds());
-        double rightVMC_F = rightLegLengthPID.compute(rightLegLengthTarget, rightFKResult.L0, period.seconds());
-
-        double deltaPhi0 = rightFKResult.phi0 - leftFKResult.phi0;
-        double deltaPhi0_Tp = deltaPhi0PID.compute(0.0, deltaPhi0, period.seconds());
 
         double leftVMC_T1, leftVMC_T2;
         double rightVMC_T1, rightVMC_T2;
@@ -284,14 +341,14 @@ namespace wheeled_bipedal_controller
         cal_VMC(rightVMC_T1, rightVMC_T2, rightFKResult, rightVMC_F, right_Tp_target + deltaPhi0_Tp);
 
         // RCLCPP_INFO(get_node()->get_logger(), "Tar:%.4f Now:%.4f T1:%.4f T2:%.4f",
-        //             leftLegLengthTarget, leftFKResult.L0, leftVMC_T1, leftVMC_T2);
+        //             leftLegLengthTarget_, leftFKResult.L0, leftVMC_T1, leftVMC_T2);
 
         command_interfaces_[0].set_value(leftVMC_T2);
         command_interfaces_[1].set_value(leftVMC_T1);
         command_interfaces_[2].set_value(rightVMC_T2);
         command_interfaces_[3].set_value(rightVMC_T1);
-        command_interfaces_[4].set_value(left_T_target);
-        command_interfaces_[5].set_value(right_T_target);
+        command_interfaces_[4].set_value(left_T_target - angularVel_T);
+        command_interfaces_[5].set_value(right_T_target + angularVel_T);
 
         // RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f L0:%.2f phi0:%.2f",
         //             leftFKResult.wheelPos.x, leftFKResult.wheelPos.y,
@@ -310,7 +367,7 @@ namespace wheeled_bipedal_controller
         // lastTime = std::chrono::system_clock::now();
         // RCLCPP_INFO(get_node()->get_logger(), "time:%.3f rate:%.1fhz",
         //             time.seconds(),
-        //             1.0 / period.seconds());
+        //             1.0 / dt);
 
         return controller_interface::return_type::OK;
     }

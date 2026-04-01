@@ -6,6 +6,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "controller_interface/controller_interface.hpp"
 #include "geometry_msgs/msg/point.hpp"
+#include "geometry_msgs/msg/twist.hpp"
 
 #include "wheeled_bipedal_controllers/ins_task.h"
 #include "wheeled_bipedal_controllers/kinematics.h"
@@ -52,13 +53,21 @@ namespace wheeled_bipedal_controller
         void loadStates();
 
     private:
-        rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr testPointSub_;
+        // rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr testPointSub_;
         // std::vector<double> iKMotorPosTarget_;
+        rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr velStatePub_;
+        rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmdVelSub_;
+        double recCmdVelTime_ = 0.0;
+        geometry_msgs::msg::Twist recCmdVel_;
+        PIDController LinearVelPID, angularVelPID;
 
         PIDController leftLegLengthPID, rightLegLengthPID;
-        double leftLegLengthTarget, rightLegLengthTarget;
+        double leftLegLengthTarget_, rightLegLengthTarget_;
+        bool rightLegSameWithLeft_;
 
         PIDController deltaPhi0PID;
+
+        bool debug_;
 
 
 
