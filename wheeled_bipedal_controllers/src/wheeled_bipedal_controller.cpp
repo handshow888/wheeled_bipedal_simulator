@@ -18,6 +18,8 @@ namespace wheeled_bipedal_controller
         rodLengths = auto_declare<std::vector<double>>("rod_lengths", {});
         wheelRadius = auto_declare<double>("wheel_radius", 0.0);
         wheelSeparation = auto_declare<double>("wheel_separation", 0.0);
+        legLengthMin = auto_declare<double>("leg_length_min", 0.15);
+        legLengthMax = auto_declare<double>("leg_length_max", 0.37);
         LQR::K11poly = auto_declare<std::vector<double>>("K11poly", {});
         LQR::K12poly = auto_declare<std::vector<double>>("K12poly", {});
         LQR::K13poly = auto_declare<std::vector<double>>("K13poly", {});
@@ -44,9 +46,6 @@ namespace wheeled_bipedal_controller
         deltaPhi0PID.setParams(auto_declare<double>("delta_phi0_P", 50.0),
                                auto_declare<double>("delta_phi0_I", 0.0),
                                auto_declare<double>("delta_phi0_D", 1.0));
-        LinearVelPID.setParams(auto_declare<double>("linear_vel_P", 0.0),
-                               auto_declare<double>("linear_vel_I", 0.0),
-                               auto_declare<double>("linear_vel_D", 0.0));
         angularVelPID.setParams(auto_declare<double>("angular_vel_P", 0.0),
                                 auto_declare<double>("angular_vel_I", 0.0),
                                 auto_declare<double>("angular_vel_D", 0.0));
@@ -97,7 +96,8 @@ namespace wheeled_bipedal_controller
             recCmdVel_ = *msg;
         };
         cmdVelSub_ = get_node()->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel", 10, cmdVelCB);
-        velStatePub_ = get_node()->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel_state", 10);
+        joySub_ = get_node()->create_subscription<sensor_msgs::msg::Joy>("/joy", 10, std::bind(&WheeledBipedalController::joyCB, this, std::placeholders::_1));
+        // velStatePub_ = get_node()->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel_state", 10);
         return CallbackReturn::SUCCESS;
     }
 
@@ -252,10 +252,6 @@ namespace wheeled_bipedal_controller
             deltaPhi0PID.setParams(get_node()->get_parameter("delta_phi0_P").as_double(),
                                    get_node()->get_parameter("delta_phi0_I").as_double(),
                                    get_node()->get_parameter("delta_phi0_D").as_double());
-
-            LinearVelPID.setParams(get_node()->get_parameter("linear_vel_P").as_double(),
-                                   get_node()->get_parameter("linear_vel_I").as_double(),
-                                   get_node()->get_parameter("linear_vel_D").as_double());
             angularVelPID.setParams(get_node()->get_parameter("angular_vel_P").as_double(),
                                     get_node()->get_parameter("angular_vel_I").as_double(),
                                     get_node()->get_parameter("angular_vel_D").as_double());
@@ -296,12 +292,6 @@ namespace wheeled_bipedal_controller
         double angularVel_T = angularVelPID.compute(recCmdVel_.angular.z, robotAngularVel, dt);
         RCLCPP_INFO(get_node()->get_logger(), "angularTarget:%.3f now:%.3f T:%.3f",
                     recCmdVel_.angular.z, robotAngularVel, angularVel_T);
-
-        // geometry_msgs::msg::Twist cmdVelStateMsg;
-        // cmdVelStateMsg.linear.x = recCmdVel_.linear.x;
-        // cmdVelStateMsg.angular.x = robotLinearVel;
-        // cmdVelStateMsg.angular.z = LinearVel_T;
-        // velStatePub_->publish(cmdVelStateMsg);
 
         double leftVMC_F = leftLegLengthPID.compute(leftLegLengthTarget_, leftFKResult.L0, dt);
         double rightVMC_F = rightLegLengthPID.compute(rightLegLengthTarget_, rightFKResult.L0, dt);
@@ -370,6 +360,30 @@ namespace wheeled_bipedal_controller
         //             1.0 / dt);
 
         return controller_interface::return_type::OK;
+    }
+
+    void WheeledBipedalController::joyCB(sensor_msgs::msg::Joy::SharedPtr msg)
+    {
+        if (abs(msg->axes.at(3)) < 0.1)
+            recCmdVel_.linear.x = 0.0;
+        else
+            recCmdVel_.linear.x = lowPassFilter(msg->axes.at(3), recCmdVel_.linear.x, 0.5);
+
+        if (abs(msg->axes.at(2)) < 0.1)
+            recCmdVel_.angular.z = 0.0;
+        else
+            recCmdVel_.angular.z = lowPassFilter(msg->axes.at(2) * 5.0, recCmdVel_.angular.z, 0.1);
+
+        if (abs(msg->axes.at(1)) > 0.1)
+        {
+            double legLengthIncrement = msg->axes.at(1) * 0.05;
+            double newLegLength = get_node()->get_parameter("left.leg_length").as_double() + legLengthIncrement;
+            if (newLegLength < legLengthMin)
+                newLegLength = legLengthMin;
+            else if (newLegLength > legLengthMax)
+                newLegLength = legLengthMax;
+            get_node()->set_parameter(rclcpp::Parameter("left.leg_length", newLegLength));
+        }
     }
 
     void WheeledBipedalController::loadStates()

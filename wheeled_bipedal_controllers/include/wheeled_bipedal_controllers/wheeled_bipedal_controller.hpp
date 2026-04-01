@@ -7,6 +7,7 @@
 #include "controller_interface/controller_interface.hpp"
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/twist.hpp"
+#include "sensor_msgs/msg/joy.hpp"
 
 #include "wheeled_bipedal_controllers/ins_task.h"
 #include "wheeled_bipedal_controllers/kinematics.h"
@@ -14,7 +15,6 @@
 #include "wheeled_bipedal_controllers/VMC.h"
 #include "wheeled_bipedal_controllers/structural_params.h"
 #include "wheeled_bipedal_controllers/pid_controller.hpp"
-
 
 namespace wheeled_bipedal_controller
 {
@@ -51,15 +51,17 @@ namespace wheeled_bipedal_controller
 
         // 自定义函数
         void loadStates();
+        void joyCB(sensor_msgs::msg::Joy::SharedPtr msg);
 
     private:
+        rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joySub_;
         // rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr testPointSub_;
         // std::vector<double> iKMotorPosTarget_;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr velStatePub_;
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmdVelSub_;
         double recCmdVelTime_ = 0.0;
         geometry_msgs::msg::Twist recCmdVel_;
-        PIDController LinearVelPID, angularVelPID;
+        PIDController angularVelPID;
 
         PIDController leftLegLengthPID, rightLegLengthPID;
         double leftLegLengthTarget_, rightLegLengthTarget_;
@@ -69,15 +71,13 @@ namespace wheeled_bipedal_controller
 
         bool debug_;
 
-
-
         std::vector<std::string> joint_names_, state_interface_names_;
         std::string command_interface_name_, imu_name_;
         std::vector<double> joints_bias_values_ = {0.0, 0.0, 0.0, 0.0}; // 关节电机实际角度与tf角度偏差（rad）
 
         motorStates lfMotorStates_, lrMotorStates_, rfMotorStates_, rrMotorStates_, lwMotorStates_, rwMotorStates_; // 存储各电机状态值
         imuStates imuStates_;
-        
+
         // 用于保存 motor 各个状态接口的索引
         std::vector<size_t> lf_motor_state_indices_, lr_motor_state_indices_, rf_motor_state_indices_, rr_motor_state_indices_; // 关节电机
         std::vector<size_t> lw_motor_state_indices_, rw_motor_state_indices_;                                                   // 轮毂电机
@@ -94,6 +94,5 @@ namespace wheeled_bipedal_controller
 
     }; // WheeledBipedalController
 } // namespace wheeled_bipedal_controller
-
 
 #endif

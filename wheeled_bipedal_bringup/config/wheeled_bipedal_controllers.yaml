@@ -73,6 +73,8 @@ wheeled_bipedal_controller:
     rod_lengths: [0.150, 0.250, 0.250, 0.150, 0.107992374] # L1 - L5
     wheel_radius: 0.069
     wheel_separation: 0.445
+    leg_length_min: 0.15
+    leg_length_max: 0.37
     # LQR的K矩阵拟合多项式的系数（从低次项系数到高次项系数排序）
     K11poly: [-6.4061, -33.6694, 26.4093, -36.1399]
     K12poly: [-0.2727, -2.8227, -12.1988, 5.8956]
@@ -107,10 +109,6 @@ wheeled_bipedal_controller:
     delta_phi0_P: 500.0
     delta_phi0_I: 100.0
     delta_phi0_D: 4.0
-    # 线速度PID
-    linear_vel_P: 0.0
-    linear_vel_I: 0.0
-    linear_vel_D: 0.0
     # 角速度PID
     angular_vel_P: 2.5
     angular_vel_I: 6.0
