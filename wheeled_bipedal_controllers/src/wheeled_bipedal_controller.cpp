@@ -18,6 +18,7 @@ namespace wheeled_bipedal_controller
         rodLengths = auto_declare<std::vector<double>>("rod_lengths", {});
         wheelRadius = auto_declare<double>("wheel_radius", 0.0);
         wheelSeparation = auto_declare<double>("wheel_separation", 0.0);
+        wheelMass = auto_declare<double>("wheel_mass", 0.85254);
         legLengthMin = auto_declare<double>("leg_length_min", 0.15);
         legLengthMax = auto_declare<double>("leg_length_max", 0.37);
         LQR::K11poly = auto_declare<std::vector<double>>("K11poly", {});
@@ -266,18 +267,33 @@ namespace wheeled_bipedal_controller
         kinematics::fwdKinematicsResult leftFKResult = kinematics::forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);
         kinematics::fwdKinematicsResult rightFKResult = kinematics::forwardKinematics(rrMotorStates_.position, rfMotorStates_.position);
 
-        static double leftThetalast = 0.0;
+        static double leftThetaLast = 0.0, leftThetaDotLast = 0.0;
         double leftTheta = leftFKResult.phi0 + INS.Pitch * deg2rad - M_PI_2;
-        double leftThetaDot = (leftTheta - leftThetalast) / dt;
-        leftThetalast = leftTheta;
+        double leftThetaDot = (leftTheta - leftThetaLast) / dt;
+        double leftThetaDotDot = (leftThetaDot - leftThetaDotLast) / dt;
+        leftThetaLast = leftTheta;
+        leftThetaDotLast = leftThetaDot;
         static double leftWheelx = 0.0;
         leftWheelx += leftWheelVel * dt;
-        static double rightThetalast = 0.0;
+        static double leftL0Last = 0.0, leftL0DotLast = 0.0;
+        double leftL0Dot = (leftFKResult.L0 - leftL0Last) / dt;
+        double leftL0DotDot = (leftL0Dot - leftL0DotLast) / dt;
+        leftL0Last = leftFKResult.L0;
+        leftL0DotLast = leftL0Dot;
+
+        static double rightThetaLast = 0.0, rightThetaDotLast = 0.0;
         double rightTheta = rightFKResult.phi0 + INS.Pitch * deg2rad - M_PI_2;
-        double rightThetaDot = (rightTheta - rightThetalast) / dt;
-        rightThetalast = rightTheta;
+        double rightThetaDot = (rightTheta - rightThetaLast) / dt;
+        double rightThetaDotDot = (rightThetaDot - rightThetaDotLast) / dt;
+        rightThetaLast = rightTheta;
+        rightThetaDotLast = rightThetaDot;
         static double rightWheelx = 0.0;
         rightWheelx += rightWheelVel * dt;
+        static double rightL0Last = 0.0, rightL0DotLast = 0.0;
+        double rightL0Dot = (rightFKResult.L0 - rightL0Last) / dt;
+        double rightL0DotDot = (rightL0Dot - rightL0DotLast) / dt;
+        rightL0Last = rightFKResult.L0;
+        rightL0DotLast = rightL0Dot;
 
         if (recCmdVel_.linear.x != 0.0 || recCmdVel_.angular.z != 0.0)
         {
@@ -301,10 +317,9 @@ namespace wheeled_bipedal_controller
         //             recCmdVel_.angular.z, robotAngularVel, INS.Gyro[2], angularVel_T);
 
         double rollCompensation = rollErrPID.compute(0.0, INS.Roll * deg2rad, dt);
-        if (abs(INS.Pitch) > 10.0)
-        {
+        if (abs(INS.Pitch) > 10.0) // pitch倾角过大时不使用roll补偿
             rollCompensation = rollErrPID.clear();
-        }
+
         // RCLCPP_INFO(get_node()->get_logger(), "(deg)R:%.3f P:%.3f Y:%.3f rollCompensation:%.3f", INS.Roll, INS.Pitch, INS.Yaw, rollCompensation);
         double leftLegLengthCpstTarget = clamp(leftLegLengthTarget_ + rollCompensation, legLengthMin, legLengthMax);
         double rightLegLengthCpstTarget = clamp(rightLegLengthTarget_ - rollCompensation, legLengthMin, legLengthMax);
@@ -314,12 +329,6 @@ namespace wheeled_bipedal_controller
         double deltaPhi0 = rightFKResult.phi0 - leftFKResult.phi0;
         double deltaPhi0_Tp = deltaPhi0PID.compute(0.0, deltaPhi0, dt);
         // RCLCPP_INFO(get_node()->get_logger(), "deltaPhi0:%.3f deltaPhi0_Tp:%.3f", deltaPhi0, deltaPhi0_Tp);
-        std_msgs::msg::Float64MultiArray testMsg;
-        testMsg.data.push_back(angularVel_T);
-        testMsg.data.push_back(robotAngularVel);
-        testMsg.data.push_back(deltaPhi0_Tp);
-        testMsg.data.push_back(deltaPhi0);
-        testInfoPub_->publish(testMsg);
 
         // 左腿LQR
         double left_T_target = 0.0, left_Tp_target = 0.0;
@@ -347,14 +356,30 @@ namespace wheeled_bipedal_controller
         double leftVMC_T1, leftVMC_T2;
         double rightVMC_T1, rightVMC_T2;
 
-        // cal_VMC(leftVMC_T1, leftVMC_T2, leftFKResult, leftVMC_F, left_Tp_target - deltaPhi0_Tp);
-        // cal_VMC(rightVMC_T1, rightVMC_T2, rightFKResult, rightVMC_F, right_Tp_target + deltaPhi0_Tp);
-
-        cal_VMC(leftVMC_T1, leftVMC_T2, leftFKResult, leftVMC_F + rollCompensation, left_Tp_target - deltaPhi0_Tp);
-        cal_VMC(rightVMC_T1, rightVMC_T2, rightFKResult, rightVMC_F - rollCompensation, right_Tp_target + deltaPhi0_Tp);
+        cal_VMC(leftVMC_T1, leftVMC_T2, leftFKResult, leftVMC_F, left_Tp_target - deltaPhi0_Tp);
+        cal_VMC(rightVMC_T1, rightVMC_T2, rightFKResult, rightVMC_F, right_Tp_target + deltaPhi0_Tp);
 
         // RCLCPP_INFO(get_node()->get_logger(), "Tar:%.4f Now:%.4f T1:%.4f T2:%.4f",
         //             leftLegLengthTarget_, leftFKResult.L0, leftVMC_T1, leftVMC_T2);
+
+        // 左腿支持力解算
+        static double leftF_NLast = 0.0;
+        double leftF_N = cal_supportForce(leftVMC_F, left_Tp_target - deltaPhi0_Tp, leftTheta, leftFKResult.L0, wheelMass,
+                                          INS.MotionAccel_n[2], leftThetaDot, leftThetaDotDot, leftL0Dot, leftL0DotDot);
+        leftF_N = lowPassFilter(leftF_N, leftF_NLast, 0.05);
+        leftF_NLast = leftF_N;
+        // 右腿支持力解算
+        static double rightF_NLast = 0.0;
+        double rightF_N = cal_supportForce(rightVMC_F, right_Tp_target - deltaPhi0_Tp, rightTheta, rightFKResult.L0, wheelMass,
+                                           INS.MotionAccel_n[2], rightThetaDot, rightThetaDotDot, rightL0Dot, rightL0DotDot);
+        rightF_N = lowPassFilter(rightF_N, rightF_NLast, 0.05);
+        rightF_NLast = rightF_N;
+
+        std_msgs::msg::Float64MultiArray testMsg;
+        testMsg.data.push_back(INS.MotionAccel_n[2]);
+        testMsg.data.push_back(leftF_N);
+        testMsg.data.push_back(rightF_N);
+        testInfoPub_->publish(testMsg);
 
         command_interfaces_[0].set_value(leftVMC_T2);
         command_interfaces_[1].set_value(leftVMC_T1);

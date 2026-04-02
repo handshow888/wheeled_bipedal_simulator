@@ -73,6 +73,7 @@ wheeled_bipedal_controller:
     rod_lengths: [0.150, 0.250, 0.250, 0.150, 0.107992374] # L1 - L5
     wheel_radius: 0.069
     wheel_separation: 0.445
+    wheel_mass: 0.85254
     leg_length_min: 0.15
     leg_length_max: 0.37
     # LQR的K矩阵拟合多项式的系数（从低次项系数到高次项系数排序）

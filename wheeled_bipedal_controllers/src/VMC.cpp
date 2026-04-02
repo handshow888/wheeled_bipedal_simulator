@@ -10,3 +10,13 @@ void cal_VMC(double &T_1, double &T_2, kinematics::fwdKinematicsResult fKParams,
     T_1 = Tmat11 * F + Tmat12 * T_p;
     T_2 = Tmat21 * F + Tmat22 * T_p;
 }
+
+double cal_supportForce(double F, double T_p, double theta, double L_0, double m_w,
+                        double ddz_M, double dTheta, double ddTheta, double dL_0, double ddL_0)
+{
+    double P = F * cos(theta) + T_p * sin(theta) / L_0;
+
+    double DDz_w = ddz_M - ddL_0 * cos(theta) + 2 * dL_0 * dTheta * sin(theta) + L_0 * ddTheta * sin(theta) + L_0 * dTheta * dTheta * cos(theta);
+
+    return m_w * DDz_w + P + m_w * 9.81;
+}

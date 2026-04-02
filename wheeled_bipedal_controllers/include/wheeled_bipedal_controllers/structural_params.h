@@ -8,6 +8,7 @@
 extern std::vector<double> rodLengths;
 extern double wheelRadius, wheelSeparation;
 extern double legLengthMin, legLengthMax;
+extern double wheelMass;
 
 // 连杆长度参数
 #define L1 rodLengths[0] // 后大腿长

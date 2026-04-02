@@ -3,3 +3,4 @@
 std::vector<double> rodLengths;
 double wheelRadius, wheelSeparation;
 double legLengthMin, legLengthMax;
+double wheelMass;

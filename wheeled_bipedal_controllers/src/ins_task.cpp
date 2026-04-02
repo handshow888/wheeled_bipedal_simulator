@@ -87,7 +87,7 @@ void INS_Task(double aX, double aY, double aZ, double gX, double gY, double gZ, 
     }
     BodyFrameToEarthFrame(INS.MotionAccel_b, INS.MotionAccel_n, INS.q); // 转换回导航系n
 
-    // 获取最终数据
+    // 获取最终数据 degree
     INS.Yaw = QEKF_INS.Yaw;
     INS.Pitch = QEKF_INS.Pitch;
     INS.Roll = QEKF_INS.Roll;

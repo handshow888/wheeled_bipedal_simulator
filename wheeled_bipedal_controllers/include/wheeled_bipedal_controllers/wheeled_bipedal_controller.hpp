@@ -72,7 +72,6 @@ namespace wheeled_bipedal_controller
 
         // roll角误差控制
         PIDController rollErrPID;
-        double rollErr_;
 
         PIDController deltaPhi0PID; // 防劈叉控制
 
