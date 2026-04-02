@@ -100,7 +100,7 @@ namespace wheeled_bipedal_controller
         };
         cmdVelSub_ = get_node()->create_subscription<geometry_msgs::msg::Twist>("/cmd_vel", 10, cmdVelCB);
         joySub_ = get_node()->create_subscription<sensor_msgs::msg::Joy>("/joy", 10, std::bind(&WheeledBipedalController::joyCB, this, std::placeholders::_1));
-        // velStatePub_ = get_node()->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel_state", 10);
+        testInfoPub_ = get_node()->create_publisher<std_msgs::msg::Float64MultiArray>("/test_info", 10);
         return CallbackReturn::SUCCESS;
     }
 
@@ -284,13 +284,13 @@ namespace wheeled_bipedal_controller
             leftWheelx = 0.0;
             rightWheelx = 0.0;
         }
-        RCLCPP_INFO(get_node()->get_logger(), "\nL:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f\nR:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f",
-                    leftTheta, leftThetaDot,
-                    leftWheelx, leftWheelVel,
-                    -INS.Pitch * deg2rad, -INS.Gyro[1],
-                    rightTheta * rad2deg, rightThetaDot * rad2deg,
-                    rightWheelx, rightWheelVel,
-                    -INS.Pitch, -INS.Gyro[1] * rad2deg);
+        // RCLCPP_INFO(get_node()->get_logger(), "\nL:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f\nR:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f",
+        //             leftTheta, leftThetaDot,
+        //             leftWheelx, leftWheelVel,
+        //             -INS.Pitch * deg2rad, -INS.Gyro[1],
+        //             rightTheta * rad2deg, rightThetaDot * rad2deg,
+        //             rightWheelx, rightWheelVel,
+        //             -INS.Pitch, -INS.Gyro[1] * rad2deg);
 
         // double robotLinearVel = (leftWheelVel + rightWheelVel) * 0.5;
         // double robotAngularVel = (rightWheelVel - leftWheelVel) / wheelSeparation;
@@ -310,24 +310,16 @@ namespace wheeled_bipedal_controller
         double rightLegLengthCpstTarget = clamp(rightLegLengthTarget_ - rollCompensation, legLengthMin, legLengthMax);
         double leftVMC_F = leftLegLengthPID.compute(leftLegLengthCpstTarget, leftFKResult.L0, dt);
         double rightVMC_F = rightLegLengthPID.compute(rightLegLengthCpstTarget, rightFKResult.L0, dt);
-        // if (leftFKResult.L0 <= legLengthMin)
-        // {
-        //     rightLegLengthTarget_ = clamp(rightLegLengthTarget_ * 1.1, legLengthMin, legLengthMax);
-        //     get_node()->set_parameter(rclcpp::Parameter("right.leg_length", rightLegLengthTarget_));
-        // }
-        // else if (rightFKResult.L0 <= legLengthMin)
-        // {
-        //     leftLegLengthTarget_ = clamp(leftLegLengthTarget_ * 1.1, legLengthMin, legLengthMax);
-        //     get_node()->set_parameter(rclcpp::Parameter("left.leg_length", leftLegLengthTarget_));
-        // }
-
-        // double leftVMC_F = leftLegLengthPID.compute(leftLegLengthTarget_, leftFKResult.L0, dt);
-        // double rightVMC_F = rightLegLengthPID.compute(rightLegLengthTarget_, rightFKResult.L0, dt);
 
         double deltaPhi0 = rightFKResult.phi0 - leftFKResult.phi0;
         double deltaPhi0_Tp = deltaPhi0PID.compute(0.0, deltaPhi0, dt);
-        // RCLCPP_INFO(get_node()->get_logger(), "deltaPhi0:%.3f deltaPhi0_Tp:%.3f",
-        //             deltaPhi0, deltaPhi0_Tp);
+        // RCLCPP_INFO(get_node()->get_logger(), "deltaPhi0:%.3f deltaPhi0_Tp:%.3f", deltaPhi0, deltaPhi0_Tp);
+        std_msgs::msg::Float64MultiArray testMsg;
+        testMsg.data.push_back(angularVel_T);
+        testMsg.data.push_back(robotAngularVel);
+        testMsg.data.push_back(deltaPhi0_Tp);
+        testMsg.data.push_back(deltaPhi0);
+        testInfoPub_->publish(testMsg);
 
         // 左腿LQR
         double left_T_target = 0.0, left_Tp_target = 0.0;
@@ -337,7 +329,7 @@ namespace wheeled_bipedal_controller
                        0 * leftWheelx,
                        leftWheelVel - recCmdVel_.linear.x + recCmdVel_.angular.z * wheelSeparation,
                        -INS.Pitch * deg2rad,
-                       -INS.Gyro[1] * deg2rad,
+                       -INS.Gyro[1],
                        left_T_target, left_Tp_target);
         // RCLCPP_INFO(get_node()->get_logger(), "leftLQR:T:%.2f Tp:%.2f", left_T_target, left_Tp_target);
         // 右腿LQR
@@ -348,7 +340,7 @@ namespace wheeled_bipedal_controller
                        0 * rightWheelx,
                        rightWheelVel - recCmdVel_.linear.x - recCmdVel_.angular.z * wheelSeparation,
                        -INS.Pitch * deg2rad,
-                       -INS.Gyro[1] * deg2rad,
+                       -INS.Gyro[1],
                        right_T_target,
                        right_Tp_target);
 
@@ -407,7 +399,7 @@ namespace wheeled_bipedal_controller
         const int buttonBIdx = 1;
         // const int buttonXIdx = 3;
         // const int buttonYIdx = 4;
-        // const int buttonLBIdx = 6;
+        const int buttonLBIdx = 6;
         const int buttonRBIdx = 7;
 
         static uint8_t lastButtonA = 0;
@@ -418,7 +410,7 @@ namespace wheeled_bipedal_controller
         // 右摇杆上下
         if (abs(msg->axes.at(axeJoystickRightUDIdx)) < 0.1)
             recCmdVel_.linear.x = 0.0;
-        else
+        else if (msg->buttons.at(buttonLBIdx) == 0) // LB按下时锁定线速度
             recCmdVel_.linear.x = lowPassFilter(msg->axes.at(3), recCmdVel_.linear.x, 0.5);
         // 左摇杆上下
         if (abs(msg->axes.at(axeJoystickLeftUDIdx)) > 0.1)

@@ -8,6 +8,7 @@
 #include "geometry_msgs/msg/point.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "sensor_msgs/msg/joy.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
 
 #include "wheeled_bipedal_controllers/ins_task.h"
 #include "wheeled_bipedal_controllers/kinematics.h"
@@ -57,7 +58,7 @@ namespace wheeled_bipedal_controller
         rclcpp::Subscription<sensor_msgs::msg::Joy>::SharedPtr joySub_;
         // rclcpp::Subscription<geometry_msgs::msg::Point>::SharedPtr testPointSub_;
         // std::vector<double> iKMotorPosTarget_;
-        rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr velStatePub_;
+        rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr testInfoPub_;
         rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmdVelSub_;
         double recCmdVelTime_ = 0.0;
         geometry_msgs::msg::Twist recCmdVel_;
