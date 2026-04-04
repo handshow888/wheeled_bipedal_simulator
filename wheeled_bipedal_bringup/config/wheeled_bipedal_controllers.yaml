@@ -95,9 +95,9 @@ wheeled_bipedal_controller:
     # PID 参数
     # 左腿
     left:
-      leg_length_P: 1000.0
-      leg_length_I: 0.0
-      leg_length_D: 125.0
+      leg_length_P: 150.0
+      leg_length_I: 5.0
+      leg_length_D: 30.0
       leg_length: 0.20 # 初始腿长
     # 右腿
     right:
@@ -106,6 +106,8 @@ wheeled_bipedal_controller:
       leg_length_I: 1000.0
       leg_length_D: 125.0
       leg_length: 0.20 # 初始腿长
+    # 腿长PID前馈值
+    leg_length_feedforward: 10.0
     # 左右两腿 phi0 角度差pid控制器
     delta_phi0_P: 500.0
     delta_phi0_I: 100.0

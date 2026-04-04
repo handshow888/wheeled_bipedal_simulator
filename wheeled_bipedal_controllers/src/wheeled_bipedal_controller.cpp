@@ -38,6 +38,7 @@ namespace wheeled_bipedal_controller
         rightLegSameWithLeft_ = auto_declare<bool>("right.same_with_left", true);
         leftLegLengthTarget_ = auto_declare<double>("left.leg_length", 0.25);
         rightLegLengthTarget_ = auto_declare<double>("right.leg_length", 0.25);
+        legLengthFeedforward_ = auto_declare<double>("leg_length_feedforward", 0.0);
         leftLegLengthPID.setParams(auto_declare<double>("left.leg_length_P", 1250.0),
                                    auto_declare<double>("left.leg_length_I", 1000.0),
                                    auto_declare<double>("left.leg_length_D", 125.0));
@@ -238,6 +239,7 @@ namespace wheeled_bipedal_controller
                                        get_node()->get_parameter("left.leg_length_I").as_double(),
                                        get_node()->get_parameter("left.leg_length_D").as_double());
             leftLegLengthTarget_ = get_node()->get_parameter("left.leg_length").as_double();
+            legLengthFeedforward_ = get_node()->get_parameter("leg_length_feedforward").as_double();
             if (rightLegSameWithLeft_)
             {
                 rightLegLengthPID.setParams(get_node()->get_parameter("left.leg_length_P").as_double(),
@@ -325,29 +327,56 @@ namespace wheeled_bipedal_controller
         double rightLegLengthCpstTarget = clamp(rightLegLengthTarget_ - rollCompensation, legLengthMin, legLengthMax);
         double leftVMC_F = leftLegLengthPID.compute(leftLegLengthCpstTarget, leftFKResult.L0, dt);
         double rightVMC_F = rightLegLengthPID.compute(rightLegLengthCpstTarget, rightFKResult.L0, dt);
+        double leftFeedforward_F = 0.0;
+        double rightFeedforward_F = 0.0;
+        if (abs(INS.Pitch) <= 10.0)
+        {
+            leftFeedforward_F = legLengthFeedforward_ / cos(leftTheta);
+            rightFeedforward_F = legLengthFeedforward_ / cos(rightTheta);
+        }
+        RCLCPP_INFO(get_node()->get_logger(), "L:PID_F:%.3f FF_F:%.3f  R:PID_F:%.3f FF_F:%.3f L:Target_L:%.3f L:%.3f",
+                    leftVMC_F, leftFeedforward_F, rightVMC_F, rightFeedforward_F, leftLegLengthCpstTarget, leftFKResult.L0);
+        leftVMC_F += leftFeedforward_F;
+        rightVMC_F += rightFeedforward_F;
 
         double deltaPhi0 = rightFKResult.phi0 - leftFKResult.phi0;
         double deltaPhi0_Tp = deltaPhi0PID.compute(0.0, deltaPhi0, dt);
         // RCLCPP_INFO(get_node()->get_logger(), "deltaPhi0:%.3f deltaPhi0_Tp:%.3f", deltaPhi0, deltaPhi0_Tp);
 
+        // 考虑腿长变化后的真实轮距
+        double realWheelSeparation = sqrt((rightFKResult.L0 - leftFKResult.L0) * (rightFKResult.L0 - leftFKResult.L0) + wheelSeparation * wheelSeparation);
+
+        // 上一次循环的支持力解算结果
+        static double leftF_NLast = 0.0, leftDDz_wLast = 0.0;
+        static double rightF_NLast = 0.0, rightDDz_wLast = 0.0;
+        if (leftDDz_wLast < -8.0 && rightDDz_wLast < -8.0)
+        {
+            LQR::calKmat(leftFKResult.L0, true);
+            LQR::calKmat(rightFKResult.L0, true);
+            angularVel_T = 0.0;
+        }
+        else
+        {
+            LQR::calKmat(leftFKResult.L0);
+            LQR::calKmat(rightFKResult.L0);
+        }
+
         // 左腿LQR
         double left_T_target = 0.0, left_Tp_target = 0.0;
-        LQR::calKmat(leftFKResult.L0);
         LQR::cal_LQR_u(leftTheta,
                        leftThetaDot,
                        0 * leftWheelx,
-                       leftWheelVel - recCmdVel_.linear.x + recCmdVel_.angular.z * wheelSeparation,
+                       leftWheelVel - recCmdVel_.linear.x + recCmdVel_.angular.z * realWheelSeparation,
                        -INS.Pitch * deg2rad,
                        -INS.Gyro[1],
                        left_T_target, left_Tp_target);
         // RCLCPP_INFO(get_node()->get_logger(), "leftLQR:T:%.2f Tp:%.2f", left_T_target, left_Tp_target);
         // 右腿LQR
         double right_T_target = 0.0, right_Tp_target = 0.0;
-        LQR::calKmat(rightFKResult.L0);
         LQR::cal_LQR_u(rightTheta,
                        rightThetaDot,
                        0 * rightWheelx,
-                       rightWheelVel - recCmdVel_.linear.x - recCmdVel_.angular.z * wheelSeparation,
+                       rightWheelVel - recCmdVel_.linear.x - recCmdVel_.angular.z * realWheelSeparation,
                        -INS.Pitch * deg2rad,
                        -INS.Gyro[1],
                        right_T_target,
@@ -363,22 +392,26 @@ namespace wheeled_bipedal_controller
         //             leftLegLengthTarget_, leftFKResult.L0, leftVMC_T1, leftVMC_T2);
 
         // 左腿支持力解算
-        static double leftF_NLast = 0.0;
-        double leftF_N = cal_supportForce(leftVMC_F, left_Tp_target - deltaPhi0_Tp, leftTheta, leftFKResult.L0, wheelMass,
-                                          INS.MotionAccel_n[2], leftThetaDot, leftThetaDotDot, leftL0Dot, leftL0DotDot);
-        leftF_N = lowPassFilter(leftF_N, leftF_NLast, 0.05);
+        std::vector<double> leftSFResult = cal_supportForce(leftVMC_F, left_Tp_target - deltaPhi0_Tp, leftTheta, leftFKResult.L0, wheelMass,
+                                                            INS.MotionAccel_n[2], leftThetaDot, leftThetaDotDot, leftL0Dot, leftL0DotDot);
+        double leftF_N = lowPassFilter(leftSFResult.at(0), leftF_NLast, 0.05);
+        double leftDDz_w = lowPassFilter(leftSFResult.at(1), leftDDz_wLast, 0.05);
         leftF_NLast = leftF_N;
+        leftDDz_wLast = leftDDz_w;
         // 右腿支持力解算
-        static double rightF_NLast = 0.0;
-        double rightF_N = cal_supportForce(rightVMC_F, right_Tp_target - deltaPhi0_Tp, rightTheta, rightFKResult.L0, wheelMass,
-                                           INS.MotionAccel_n[2], rightThetaDot, rightThetaDotDot, rightL0Dot, rightL0DotDot);
-        rightF_N = lowPassFilter(rightF_N, rightF_NLast, 0.05);
+        std::vector<double> rightSFResult = cal_supportForce(rightVMC_F, right_Tp_target + deltaPhi0_Tp, rightTheta, rightFKResult.L0, wheelMass,
+                                                             INS.MotionAccel_n[2], rightThetaDot, rightThetaDotDot, rightL0Dot, rightL0DotDot);
+        double rightF_N = lowPassFilter(rightSFResult.at(0), rightF_NLast, 0.05);
+        double rightDDz_w = lowPassFilter(rightSFResult.at(1), rightDDz_wLast, 0.05);
         rightF_NLast = rightF_N;
+        rightDDz_wLast = rightDDz_w;
 
         std_msgs::msg::Float64MultiArray testMsg;
         testMsg.data.push_back(INS.MotionAccel_n[2]);
         testMsg.data.push_back(leftF_N);
         testMsg.data.push_back(rightF_N);
+        testMsg.data.push_back(leftDDz_w);
+        testMsg.data.push_back(rightDDz_w);
         testInfoPub_->publish(testMsg);
 
         command_interfaces_[0].set_value(leftVMC_T2);

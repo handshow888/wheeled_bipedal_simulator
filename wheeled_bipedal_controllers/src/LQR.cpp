@@ -23,7 +23,7 @@ namespace LQR
     {
         double resultT = 0.0;
         double resultT_p = 0.0;
-        
+
         resultT = -Kmat[0] * theta;
         resultT -= Kmat[1] * thetaDot;
         resultT -= Kmat[2] * x;
@@ -42,28 +42,40 @@ namespace LQR
         T_p = resultT_p;
     }
 
-    void calKmat(double legLength)
+    void calKmat(double legLength, bool offGround)
     {
         for (int i = 0; i < 12; ++i)
         {
             Kmat[i] = 0;
         }
         int polySize = (int)K11poly.size();
-        for (int i = 0; i < polySize; ++i)
+        if (!offGround) // 未离地
         {
-            double pow_legLength_i = pow(legLength, i);
-            Kmat[0] += K11poly[i] * pow_legLength_i;
-            Kmat[1] += K12poly[i] * pow_legLength_i;
-            Kmat[2] += K13poly[i] * pow_legLength_i;
-            Kmat[3] += K14poly[i] * pow_legLength_i;
-            Kmat[4] += K15poly[i] * pow_legLength_i;
-            Kmat[5] += K16poly[i] * pow_legLength_i;
-            Kmat[6] += K21poly[i] * pow_legLength_i;
-            Kmat[7] += K22poly[i] * pow_legLength_i;
-            Kmat[8] += K23poly[i] * pow_legLength_i;
-            Kmat[9] += K24poly[i] * pow_legLength_i;
-            Kmat[10] += K25poly[i] * pow_legLength_i;
-            Kmat[11] += K26poly[i] * pow_legLength_i;
+            for (int i = 0; i < polySize; ++i)
+            {
+                double pow_legLength_i = pow(legLength, i);
+                Kmat[0] += K11poly[i] * pow_legLength_i;
+                Kmat[1] += K12poly[i] * pow_legLength_i;
+                Kmat[2] += K13poly[i] * pow_legLength_i;
+                Kmat[3] += K14poly[i] * pow_legLength_i;
+                Kmat[4] += K15poly[i] * pow_legLength_i;
+                Kmat[5] += K16poly[i] * pow_legLength_i;
+                Kmat[6] += K21poly[i] * pow_legLength_i;
+                Kmat[7] += K22poly[i] * pow_legLength_i;
+                Kmat[8] += K23poly[i] * pow_legLength_i;
+                Kmat[9] += K24poly[i] * pow_legLength_i;
+                Kmat[10] += K25poly[i] * pow_legLength_i;
+                Kmat[11] += K26poly[i] * pow_legLength_i;
+            }
+        }
+        else // 离地时
+        {
+            for (int i = 0; i < polySize; ++i)
+            {
+                double pow_legLength_i = pow(legLength, i);
+                Kmat[6] += K21poly[i] * pow_legLength_i;
+                Kmat[7] += K22poly[i] * pow_legLength_i;
+            }
         }
         // printf("Kmat:\n%.2f %.2f %.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f %.2f %.2f\n",
         //         Kmat[0],Kmat[1],Kmat[2],Kmat[3],Kmat[4],Kmat[5],

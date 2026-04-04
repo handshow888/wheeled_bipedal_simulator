@@ -67,6 +67,7 @@ namespace wheeled_bipedal_controller
 
         // 腿高控制
         PIDController leftLegLengthPID, rightLegLengthPID;
+        double legLengthFeedforward_;
         double leftLegLengthTarget_, rightLegLengthTarget_;
         bool rightLegSameWithLeft_;
 
