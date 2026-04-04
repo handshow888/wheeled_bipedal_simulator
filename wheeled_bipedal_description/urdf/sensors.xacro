@@ -1,23 +1,29 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <link name="imu_link"/>
-    <joint name="imu_joint" type="fixed">
-        <parent link="base_link"/>
-        <child link="imu_link"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint>
+  <xacro:include filename="$(find ros2_livox_simulation)/urdf/mid360.xacro" />
+  <xacro:mid360 name="livox_frame" parent="base_link" topic="/livox/lidar">
+    <!-- <origin xyz="0 0 0.20" rpy="0 ${15.0/180.0*M_PI} 0" /> -->
+    <origin xyz="0 0 0.20" rpy="0 0 0" />
+  </xacro:mid360>
 
-    <!-- 频率过高会导致噪声巨大 -->
-    <gazebo reference="imu_link">
-        <sensor name="imu_sensor" type="imu">
-          <always_on>true</always_on>
-          <update_rate>100</update_rate>    
-        </sensor>
-    </gazebo>
-    
-    <!-- 经测试，噪声参数并不起作用 -->
-    <!-- <gazebo reference="imu_link">
+  <link name="imu_link" />
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="imu_link" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
+  </joint>
+
+  <!-- 频率过高会导致噪声巨大 -->
+  <gazebo reference="imu_link">
+    <sensor name="imu_sensor" type="imu">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+    </sensor>
+  </gazebo>
+
+  <!-- 经测试，噪声参数并不起作用 -->
+  <!-- <gazebo reference="imu_link">
         <sensor name="imu_sensor" type="imu">
         <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
             <ros>

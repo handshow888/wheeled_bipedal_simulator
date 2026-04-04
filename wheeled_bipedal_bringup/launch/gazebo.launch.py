@@ -16,15 +16,21 @@ def generate_launch_description():
 
     use_rviz = LaunchConfiguration('use_rviz')
     rviz_config_file = LaunchConfiguration('rviz_config_file')
+    world_file = LaunchConfiguration('world')
 
     declare_use_rviz_cmd = DeclareLaunchArgument(
         'use_rviz',
-        default_value='False',
+        default_value='True',
         description='Whether to start RVIZ')
     declare_rviz_config_file_cmd = DeclareLaunchArgument(
         'rviz_config_file',
         default_value=os.path.join(bringup_pkg, 'rviz', 'gazebo_sim.rviz'),
         description='Full path to the RVIZ config file to use')  
+    declare_world_cmd = DeclareLaunchArgument(
+        'world',
+        default_value=os.path.join(bringup_pkg, 'worlds', 'RMUC2024_world.world'),
+        # default_value="empty.world",
+        description='Full path to the Gazebo world file to load')
 
     # 静态TF发布器
     # static_tf = Node(
@@ -43,12 +49,15 @@ def generate_launch_description():
     urdf_file = os.path.join(description_pkg, 'urdf', 'gazebo_ros2_control.xacro')
     robot_desc = Command(['xacro ', urdf_file])
 
-    # 启动Gazebo（使用gazebo.launch.py）
+    # 启动Gazebo
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(gazebo_ros_share, 'launch', 'gazebo.launch.py')
         ),
-        # launch_arguments={'verbose': 'true'}.items()
+        launch_arguments={
+                        #   'verbose': 'true',
+                          'world': world_file,
+                          }.items(),
     )
 
     # 机器人状态发布器（将URDF加载到参数服务器）
@@ -70,8 +79,8 @@ def generate_launch_description():
             '-entity', 'wheeled_bipedal_robot',
             # '-file', urdf_file,
             '-topic', 'robot_description',
-            '-x', '0',
-            '-y', '0',
+            '-x', '6.35',
+            '-y', '7.6',
             '-z', '0.5'
         ],
         output='screen'
@@ -116,6 +125,11 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
+        wheeled_bipedal_controller_spawner,
+        declare_use_rviz_cmd,
+        declare_rviz_config_file_cmd,
+        declare_world_cmd,
+        rviz_cmd,
         gazebo,
         # static_tf,
         robot_state_publisher,
@@ -124,8 +138,4 @@ def generate_launch_description():
         imu_sensor_broadcaster_spawner,
         # diff_drive_controller_spawner,
         # effort_controller_spawner,
-        wheeled_bipedal_controller_spawner,
-        declare_use_rviz_cmd,
-        declare_rviz_config_file_cmd,
-        rviz_cmd
     ])
