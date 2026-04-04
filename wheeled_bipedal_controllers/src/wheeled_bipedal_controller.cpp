@@ -334,8 +334,8 @@ namespace wheeled_bipedal_controller
             leftFeedforward_F = legLengthFeedforward_ / cos(leftTheta);
             rightFeedforward_F = legLengthFeedforward_ / cos(rightTheta);
         }
-        RCLCPP_INFO(get_node()->get_logger(), "L:PID_F:%.3f FF_F:%.3f  R:PID_F:%.3f FF_F:%.3f L:Target_L:%.3f L:%.3f",
-                    leftVMC_F, leftFeedforward_F, rightVMC_F, rightFeedforward_F, leftLegLengthCpstTarget, leftFKResult.L0);
+        // RCLCPP_INFO(get_node()->get_logger(), "L:PID_F:%.3f FF_F:%.3f  R:PID_F:%.3f FF_F:%.3f L:Target_L:%.3f L:%.3f",
+        //             leftVMC_F, leftFeedforward_F, rightVMC_F, rightFeedforward_F, leftLegLengthCpstTarget, leftFKResult.L0);
         leftVMC_F += leftFeedforward_F;
         rightVMC_F += rightFeedforward_F;
 
@@ -451,8 +451,8 @@ namespace wheeled_bipedal_controller
         const int axeJoystickRightUDIdx = 3;
         // const int axeTriggerRightIdx = 4;
         // const int axeTriggerLeftIdx = 5;
-        // const int axeArrowLRIdx = 6;
-        // const int axeArrowUDIdx = 7;
+        const int axeArrowLRIdx = 6;
+        const int axeArrowUDIdx = 7;
         const int buttonAIdx = 0;
         const int buttonBIdx = 1;
         // const int buttonXIdx = 3;
@@ -462,14 +462,46 @@ namespace wheeled_bipedal_controller
 
         static uint8_t lastButtonA = 0;
         static uint8_t lastButtonB = 0;
+        static int8_t lastArrowUD = 0;
+        static int8_t lastArrowLR = 0;
         static bool spin = false;
         static int spinDir = 1;
+
+        static double maxVelX = 1.0;
+        // 方向键上下
+        if (lastArrowUD == 1 && msg->axes.at(axeArrowUDIdx) == 0) // UP
+        {
+            maxVelX += 0.5;
+            maxVelX = clamp(maxVelX, 0.1, 5.0);
+            RCLCPP_INFO(get_node()->get_logger(), "Joy Max vel set to %.1f m/s", maxVelX);
+        }
+        else if (lastArrowUD == -1 && msg->axes.at(axeArrowUDIdx) == 0) // DOWN
+        {
+            maxVelX -= 0.5;
+            maxVelX = clamp(maxVelX, 0.1, 5.0);
+            RCLCPP_INFO(get_node()->get_logger(), "Joy Max vel set to %.1f m/s", maxVelX);
+        }
+        lastArrowUD = msg->axes.at(axeArrowUDIdx);
+        // 方向键左右
+        if (lastArrowLR == 1 && msg->axes.at(axeArrowLRIdx) == 0) // LEFT
+        {
+            maxVelX -= 0.1;
+            maxVelX = clamp(maxVelX, 0.1, 5.0);
+            RCLCPP_INFO(get_node()->get_logger(), "Joy Max vel set to %.1f m/s", maxVelX);
+        }
+        else if (lastArrowLR == -1 && msg->axes.at(axeArrowLRIdx) == 0) // RIGHT
+        {
+            maxVelX += 0.1;
+            maxVelX = clamp(maxVelX, 0.1, 5.0);
+            RCLCPP_INFO(get_node()->get_logger(), "Joy Max vel set to %.1f m/s", maxVelX);
+        }
+        lastArrowLR = msg->axes.at(axeArrowLRIdx);
 
         // 右摇杆上下
         if (abs(msg->axes.at(axeJoystickRightUDIdx)) < 0.1)
             recCmdVel_.linear.x = 0.0;
         else if (msg->buttons.at(buttonLBIdx) == 0) // LB按下时锁定线速度
-            recCmdVel_.linear.x = lowPassFilter(msg->axes.at(3), recCmdVel_.linear.x, 0.5);
+            recCmdVel_.linear.x = lowPassFilter(msg->axes.at(3) * maxVelX, recCmdVel_.linear.x, 0.5);
         // 左摇杆上下
         if (abs(msg->axes.at(axeJoystickLeftUDIdx)) > 0.1)
         {
