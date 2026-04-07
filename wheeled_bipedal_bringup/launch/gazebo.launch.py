@@ -20,7 +20,7 @@ def generate_launch_description():
 
     declare_use_rviz_cmd = DeclareLaunchArgument(
         'use_rviz',
-        default_value='True',
+        default_value='False',
         description='Whether to start RVIZ')
     declare_rviz_config_file_cmd = DeclareLaunchArgument(
         'rviz_config_file',
@@ -28,7 +28,8 @@ def generate_launch_description():
         description='Full path to the RVIZ config file to use')  
     declare_world_cmd = DeclareLaunchArgument(
         'world',
-        default_value=os.path.join(bringup_pkg, 'worlds', 'RMUC2024_world.world'),
+        default_value=os.path.join(bringup_pkg, 'worlds', 'exploration_world1.world'),
+        # default_value=os.path.join(bringup_pkg, 'worlds', 'RMUC2024_world.world'),
         # default_value="empty.world",
         description='Full path to the Gazebo world file to load')
 
@@ -79,9 +80,12 @@ def generate_launch_description():
             '-entity', 'wheeled_bipedal_robot',
             # '-file', urdf_file,
             '-topic', 'robot_description',
-            '-x', '6.35',
-            '-y', '7.6',
-            '-z', '0.5'
+            '-x', '0.0',
+            '-y', '0.0',
+            '-z', '0.5',
+            # '-x', '6.35',
+            # '-y', '7.6',
+            # '-z', '0.5',
         ],
         output='screen'
     )

@@ -3,9 +3,9 @@
 
   <!-- <xacro:include filename="$(find ros2_livox_simulation)/urdf/mid360.xacro" /> -->
   <xacro:include filename="$(find livox_gazebo_ros2_gpu_simulation)/urdf/mid360.xacro"/>
-  <xacro:mid360 name="livox_frame" parent="base_link" topic="/livox/lidar">
-    <!-- <origin xyz="0 0 0.20" rpy="0 ${15.0/180.0*M_PI} 0" /> -->
-    <origin xyz="0 0 0.20" rpy="0 0 0" />
+  <xacro:mid360 name="livox_frame" parent="base_link" topic="/livox/lidar" lidar_rate="10">
+    <origin xyz="0 0 0.20" rpy="${0.0/180.0*M_PI} ${15.0/180.0*M_PI} 0" />
+    <!-- <origin xyz="0 0 0.20" rpy="0 0 0" /> -->
   </xacro:mid360>
 
   <link name="imu_link" />
