@@ -13,7 +13,8 @@ namespace wheeled_bipedal_controller
         joint_names_ = auto_declare<std::vector<std::string>>("joints", {});
         joints_bias_values_ = auto_declare<std::vector<double>>("joints_bias_values", {});
         command_interface_name_ = auto_declare<std::string>("command_interface_type", "effort");
-        state_interface_names_ = auto_declare<std::vector<std::string>>("state_interface_type", {"position", "velocity", "effort"});
+        state_interface_names_ = auto_declare<std::vector<std::string>>("state_interface_type", {"position", "velocity"});
+        // state_interface_names_ = auto_declare<std::vector<std::string>>("state_interface_type", {"position", "velocity", "effort"});
         imu_name_ = auto_declare<std::string>("imu_name", "imu_sensor");
         rodLengths = auto_declare<std::vector<double>>("rod_lengths", {});
         wheelRadius = auto_declare<double>("wheel_radius", 0.0);
@@ -536,28 +537,28 @@ namespace wheeled_bipedal_controller
     {
         // --- 1. 读取电机数据 ---
         lfMotorStates_.position = state_interfaces_[lf_motor_state_indices_[0]].get_value() + joints_bias_values_[0];
-        lfMotorStates_.velocity = state_interfaces_[lf_motor_state_indices_[1]].get_value();
-        lfMotorStates_.effort = state_interfaces_[lf_motor_state_indices_[2]].get_value();
+        // lfMotorStates_.velocity = state_interfaces_[lf_motor_state_indices_[1]].get_value();
+        // lfMotorStates_.effort = state_interfaces_[lf_motor_state_indices_[2]].get_value();
 
         lrMotorStates_.position = state_interfaces_[lr_motor_state_indices_[0]].get_value() + joints_bias_values_[1];
-        lrMotorStates_.velocity = state_interfaces_[lr_motor_state_indices_[1]].get_value();
-        lrMotorStates_.effort = state_interfaces_[lr_motor_state_indices_[2]].get_value();
+        // lrMotorStates_.velocity = state_interfaces_[lr_motor_state_indices_[1]].get_value();
+        // lrMotorStates_.effort = state_interfaces_[lr_motor_state_indices_[2]].get_value();
 
         rfMotorStates_.position = state_interfaces_[rf_motor_state_indices_[0]].get_value() + joints_bias_values_[2];
-        rfMotorStates_.velocity = state_interfaces_[rf_motor_state_indices_[1]].get_value();
-        rfMotorStates_.effort = state_interfaces_[rf_motor_state_indices_[2]].get_value();
+        // rfMotorStates_.velocity = state_interfaces_[rf_motor_state_indices_[1]].get_value();
+        // rfMotorStates_.effort = state_interfaces_[rf_motor_state_indices_[2]].get_value();
 
         rrMotorStates_.position = state_interfaces_[rr_motor_state_indices_[0]].get_value() + joints_bias_values_[3];
-        rrMotorStates_.velocity = state_interfaces_[rr_motor_state_indices_[1]].get_value();
-        rrMotorStates_.effort = state_interfaces_[rr_motor_state_indices_[2]].get_value();
+        // rrMotorStates_.velocity = state_interfaces_[rr_motor_state_indices_[1]].get_value();
+        // rrMotorStates_.effort = state_interfaces_[rr_motor_state_indices_[2]].get_value();
 
-        lwMotorStates_.position = state_interfaces_[lw_motor_state_indices_[0]].get_value();
+        // lwMotorStates_.position = state_interfaces_[lw_motor_state_indices_[0]].get_value();
         lwMotorStates_.velocity = state_interfaces_[lw_motor_state_indices_[1]].get_value();
-        lwMotorStates_.effort = state_interfaces_[lw_motor_state_indices_[2]].get_value();
+        // lwMotorStates_.effort = state_interfaces_[lw_motor_state_indices_[2]].get_value();
 
-        rwMotorStates_.position = state_interfaces_[rw_motor_state_indices_[0]].get_value();
+        // rwMotorStates_.position = state_interfaces_[rw_motor_state_indices_[0]].get_value();
         rwMotorStates_.velocity = state_interfaces_[rw_motor_state_indices_[1]].get_value();
-        rwMotorStates_.effort = state_interfaces_[rw_motor_state_indices_[2]].get_value();
+        // rwMotorStates_.effort = state_interfaces_[rw_motor_state_indices_[2]].get_value();
 
         // --- 2. 读取 IMU 数据 ---
         imuStates_.ang_vel_x = state_interfaces_[imu_state_indices_[0]].get_value();
