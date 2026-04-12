@@ -5,9 +5,9 @@ INS_t INS;
 
 // static double lastTime = 0; // ms
 
-const float xb[3] = {1, 0, 0};
-const float yb[3] = {0, 1, 0};
-const float zb[3] = {0, 0, 1};
+const double xb[3] = {1, 0, 0};
+const double yb[3] = {0, 1, 0};
+const double zb[3] = {0, 0, 1};
 
 static constexpr int X = 0;
 static constexpr int Y = 1;
@@ -22,7 +22,7 @@ void INS_Init()
 void INS_Task(double aX, double aY, double aZ, double gX, double gY, double gZ, double dt)
 {
     static int QEKF_INS_Q_Nan_count = 0;
-    const float gravity[3] = {0, 0, 9.81f};
+    const double gravity[3] = {0, 0, 9.81};
 
     // auto now = std::chrono::high_resolution_clock::now();
 
@@ -79,9 +79,9 @@ void INS_Task(double aX, double aY, double aZ, double gX, double gY, double gZ, 
     BodyFrameToEarthFrame(zb, INS.zn, INS.q);
 
     // 将重力从导航坐标系n转换到机体系b,随后根据加速度计数据计算运动加速度
-    float gravity_b[3];
+    double gravity_b[3];
     EarthFrameToBodyFrame(gravity, gravity_b, INS.q);
-    for (uint8_t i = 0; i < 3; i++) // 同样过一个低通滤波
+    for (uint8_t i = 0; i < 3; ++i) // 同样过一个低通滤波
     {
         INS.MotionAccel_b[i] = (INS.Accel[i] - gravity_b[i]) * dt / (INS.AccelLPF + dt) + INS.MotionAccel_b[i] * INS.AccelLPF / (INS.AccelLPF + dt);
     }
@@ -103,19 +103,19 @@ void INS_Task(double aX, double aY, double aZ, double gX, double gY, double gZ, 
  * @param[2]       vector in EarthFrame
  * @param[3]       quaternion
  */
-void BodyFrameToEarthFrame(const float *vecBF, float *vecEF, float *q)
+void BodyFrameToEarthFrame(const double *vecBF, double *vecEF, double *q)
 {
-    vecEF[0] = 2.0f * ((0.5f - q[2] * q[2] - q[3] * q[3]) * vecBF[0] +
+    vecEF[0] = 2.0 * ((0.5 - q[2] * q[2] - q[3] * q[3]) * vecBF[0] +
                        (q[1] * q[2] - q[0] * q[3]) * vecBF[1] +
                        (q[1] * q[3] + q[0] * q[2]) * vecBF[2]);
 
-    vecEF[1] = 2.0f * ((q[1] * q[2] + q[0] * q[3]) * vecBF[0] +
-                       (0.5f - q[1] * q[1] - q[3] * q[3]) * vecBF[1] +
+    vecEF[1] = 2.0 * ((q[1] * q[2] + q[0] * q[3]) * vecBF[0] +
+                       (0.5 - q[1] * q[1] - q[3] * q[3]) * vecBF[1] +
                        (q[2] * q[3] - q[0] * q[1]) * vecBF[2]);
 
-    vecEF[2] = 2.0f * ((q[1] * q[3] - q[0] * q[2]) * vecBF[0] +
+    vecEF[2] = 2.0 * ((q[1] * q[3] - q[0] * q[2]) * vecBF[0] +
                        (q[2] * q[3] + q[0] * q[1]) * vecBF[1] +
-                       (0.5f - q[1] * q[1] - q[2] * q[2]) * vecBF[2]);
+                       (0.5 - q[1] * q[1] - q[2] * q[2]) * vecBF[2]);
 }
 
 /**
@@ -124,17 +124,17 @@ void BodyFrameToEarthFrame(const float *vecBF, float *vecEF, float *q)
  * @param[2]       vector in BodyFrame
  * @param[3]       quaternion
  */
-void EarthFrameToBodyFrame(const float *vecEF, float *vecBF, float *q)
+void EarthFrameToBodyFrame(const double *vecEF, double *vecBF, double *q)
 {
-    vecBF[0] = 2.0f * ((0.5f - q[2] * q[2] - q[3] * q[3]) * vecEF[0] +
+    vecBF[0] = 2.0 * ((0.5 - q[2] * q[2] - q[3] * q[3]) * vecEF[0] +
                        (q[1] * q[2] + q[0] * q[3]) * vecEF[1] +
                        (q[1] * q[3] - q[0] * q[2]) * vecEF[2]);
 
-    vecBF[1] = 2.0f * ((q[1] * q[2] - q[0] * q[3]) * vecEF[0] +
-                       (0.5f - q[1] * q[1] - q[3] * q[3]) * vecEF[1] +
+    vecBF[1] = 2.0 * ((q[1] * q[2] - q[0] * q[3]) * vecEF[0] +
+                       (0.5 - q[1] * q[1] - q[3] * q[3]) * vecEF[1] +
                        (q[2] * q[3] + q[0] * q[1]) * vecEF[2]);
 
-    vecBF[2] = 2.0f * ((q[1] * q[3] + q[0] * q[2]) * vecEF[0] +
+    vecBF[2] = 2.0 * ((q[1] * q[3] + q[0] * q[2]) * vecEF[0] +
                        (q[2] * q[3] - q[0] * q[1]) * vecEF[1] +
-                       (0.5f - q[1] * q[1] - q[2] * q[2]) * vecEF[2]);
+                       (0.5 - q[1] * q[1] - q[2] * q[2]) * vecEF[2]);
 }

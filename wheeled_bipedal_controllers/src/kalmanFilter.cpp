@@ -15,12 +15,12 @@ void Kalman_Filter_Init(KalmanFilter_t *kf)
 
 void Kalman_Filter_Measure(KalmanFilter_t *kf)
 {
-    kf->z = arrayToMatrixXd(kf->MeasuredVector, Zsize, 1);
+    kf->z = Eigen::Map<const Eigen::Matrix<double, Zsize, 1>>(kf->MeasuredVector);
 
     memset(kf->MeasuredVector, 0, sizeof(kf->MeasuredVector));
 
     // if (Usize > 0)
-    //     kf->u = arrayToMatrixXd(kf->ControlVector, Usize, 1);
+    //     kf->u = Eigen::Map<const Eigen::Matrix<double, Usize, 1>>(kf->ControlVector);
 }
 
 void Kalman_Filter_xhatMinusUpdate(KalmanFilter_t *kf)
@@ -29,8 +29,8 @@ void Kalman_Filter_xhatMinusUpdate(KalmanFilter_t *kf)
     {
         if (Usize > 0)
         {
-            auto temp_vector = kf->F * kf->xhat;
-            auto temp_vector1 = kf->B * kf->u;
+            Eigen::Matrix<double, Xsize, 1> temp_vector = kf->F * kf->xhat;
+            Eigen::Matrix<double, Xsize, 1> temp_vector1 = kf->B * kf->u;
             kf->xhatminus = temp_vector + temp_vector1;
         }
         else
@@ -46,7 +46,7 @@ void Kalman_Filter_PminusUpdate(KalmanFilter_t *kf)
     {
         kf->FT = kf->F.transpose(); // 转置
         kf->Pminus = kf->F * kf->P;
-        auto temp_matrix = kf->Pminus * kf->FT; // temp_matrix = F P(k-1) FT
+        Eigen::Matrix<double, Xsize, Xsize> temp_matrix = kf->Pminus * kf->FT; // temp_matrix = F P(k-1) FT
         kf->Pminus = temp_matrix + kf->Q;
     }
 }
@@ -55,11 +55,11 @@ void Kalman_Filter_SetK(KalmanFilter_t *kf)
     if (!kf->SkipEq3)
     {
         kf->HT = kf->H.transpose();                          // z|x => x|z
-        auto temp_matrix = kf->H * kf->Pminus;    // temp_matrix = H·P'(k)
+        Eigen::Matrix<double, Zsize, Xsize> temp_matrix = kf->H * kf->Pminus;    // temp_matrix = H·P'(k)
         Eigen::Matrix3d temp_matrix1 = temp_matrix * kf->HT; // temp_matrix1 = H·P'(k)·HT
         kf->S = temp_matrix1 + kf->R;             // S = H P'(k) HT + R
         temp_matrix1 = kf->S.inverse();             // temp_matrix1 = inv(H·P'(k)·HT + R)
-        auto temp_matrix2 = kf->Pminus * kf->HT;  // temp_matrix2 = P'(k)·HT
+        Eigen::Matrix<double, Xsize, Zsize> temp_matrix2 = kf->Pminus * kf->HT;  // temp_matrix2 = P'(k)·HT
         kf->K = temp_matrix2 * temp_matrix1;
     }
 }
@@ -67,9 +67,9 @@ void Kalman_Filter_xhatUpdate(KalmanFilter_t *kf)
 {
     if (!kf->SkipEq4)
     {
-        auto temp_vector = kf->H * kf->xhatminus; // temp_vector = H xhat'(k)
-        auto temp_vector1 = kf->z - temp_vector;  // temp_vector1 = z(k) - H·xhat'(k)
-        auto temp_vector2 = kf->K * temp_vector1; // temp_vector2 = K(k)·(z(k) - H·xhat'(k))
+        Eigen::Matrix<double, Zsize, 1> temp_vector = kf->H * kf->xhatminus; // temp_vector = H xhat'(k)
+        Eigen::Matrix<double, Zsize, 1> temp_vector1 = kf->z - temp_vector;  // temp_vector1 = z(k) - H·xhat'(k)
+        Eigen::Matrix<double, Xsize, 1> temp_vector2 = kf->K * temp_vector1; // temp_vector2 = K(k)·(z(k) - H·xhat'(k))
         kf->xhat = kf->xhatminus + temp_vector2;
     }
 }
@@ -77,8 +77,8 @@ void Kalman_Filter_P_Update(KalmanFilter_t *kf)
 {
     if (!kf->SkipEq5)
     {
-        auto temp_matrix = kf->K * kf->H;             // temp_matrix = K(k)·H
-        auto temp_matrix1 = temp_matrix * kf->Pminus; // temp_matrix1 = K(k)·H·P'(k)
+        Eigen::Matrix<double, Xsize, Xsize> temp_matrix = kf->K * kf->H;             // temp_matrix = K(k)·H
+        Eigen::Matrix<double, Xsize, Xsize> temp_matrix1 = temp_matrix * kf->Pminus; // temp_matrix1 = K(k)·H·P'(k)
         kf->P = kf->Pminus - temp_matrix1;
     }
 }
@@ -87,9 +87,9 @@ void Kalman_Filter_P_Update(KalmanFilter_t *kf)
  * @brief 执行卡尔曼滤波黄金五式,提供了用户定义函数,可以替代五个中的任意一个环节,方便自行扩展为EKF/UKF/ESKF/AUKF等
  *
  * @param kf kf类型定义
- * @return float* 返回滤波值
+ * @return double* 返回滤波值
  */
-float *Kalman_Filter_Update(KalmanFilter_t *kf)
+double *Kalman_Filter_Update(KalmanFilter_t *kf)
 {
     // 0. 获取量测信息
     Kalman_Filter_Measure(kf);
@@ -147,7 +147,7 @@ float *Kalman_Filter_Update(KalmanFilter_t *kf)
     }
     // std::cout << "KF Update 6 finished." << std::endl;
     
-    matrixToFloatArray(kf->xhat, kf->FilteredValue);
+    vectorToFixedArray<Xsize>(kf->xhat, kf->FilteredValue);
     
     // std::cout << "KF Update 7 finished." << std::endl;
 

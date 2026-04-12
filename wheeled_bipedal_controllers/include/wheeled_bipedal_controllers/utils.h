@@ -7,17 +7,24 @@
 
 #define clamp(amt, low, high) ((amt) < (low) ? (low) : ((amt) > (high) ? (high) : (amt))) // 限幅函数
 
-float lowPassFilter(float currentValue, float previousValue, float alpha);
-float invSqrt(float x);
-void EularAngleToQuaternion(float Yaw, float Pitch, float Roll, float *q);
-void QuaternionToEularAngle(float *q, float *Yaw, float *Pitch, float *Roll);
+double lowPassFilter(double currentValue, double previousValue, double alpha);
+void EularAngleToQuaternion(double Yaw, double Pitch, double Roll, double *q);
+void QuaternionToEularAngle(double *q, double *Yaw, double *Pitch, double *Roll);
 
-Eigen::MatrixXd arrayToMatrixXd(const float* data, int rows, int cols, bool rowMajor = true);
-void matrixToFloatArray(const Eigen::MatrixXd& vec, float* output);
-void matrixToRowMajorFloatArray(const Eigen::MatrixXd& mat, float* output);
+template<int Rows, int Cols>
+void matrixToRowMajorFixedArray(const Eigen::Matrix<double, Rows, Cols> &mat, double *output)
+{
+    // 将 output 映射为固定尺寸行优先矩阵，直接赋值
+    Eigen::Map<Eigen::Matrix<double, Rows, Cols, Eigen::RowMajor>>{output} = mat;
+}
 
+template <int N>
+void vectorToFixedArray(const Eigen::Matrix<double, N, 1> &vec, double *output)
+{
+    Eigen::Map<Eigen::Matrix<double, N, 1>>{output} = vec;
+}
 
-constexpr float deg2rad = M_PI / 180.0f;  // 乘以此变量可从角度变换到弧度
-constexpr float rad2deg = 180.0f / M_PI;// 乘以此变量可从弧度变换到角度
+constexpr double deg2rad = M_PI / 180.0; // 乘以此变量可从角度变换到弧度
+constexpr double rad2deg = 180.0 / M_PI; // 乘以此变量可从弧度变换到角度
 
 #endif
