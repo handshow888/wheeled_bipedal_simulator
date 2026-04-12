@@ -215,6 +215,7 @@ namespace wheeled_bipedal_controller
         INS_Task(imuStates_.lin_acc_x, imuStates_.lin_acc_y, imuStates_.lin_acc_z,
                  imuStates_.ang_vel_x, imuStates_.ang_vel_y, imuStates_.ang_vel_z,
                  dt);
+        // RCLCPP_INFO(get_node()->get_logger(), "R:%.3f P:%.3f Y:%.3f", INS.Roll, INS.Pitch, INS.Yaw);
 
         if (time.seconds() - initTime <= 2.0)
             return controller_interface::return_type::OK;

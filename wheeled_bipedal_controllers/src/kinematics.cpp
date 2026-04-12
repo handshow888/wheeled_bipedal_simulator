@@ -75,13 +75,13 @@ namespace kinematics
         // 如果解不在合理范围内，计算第二个解
         if (!(phi1 >= M_PI / 2 && phi1 <= (M_PI + M_PI / 2)))
         {
-            RCLCPP_INFO(rclcpp::get_logger("Kinematics"), "phi1 1: %.2f invalid\t", phi1 / M_PI * 180.0f);
+            RCLCPP_INFO(rclcpp::get_logger("Kinematics"), "phi1 1: %.2f invalid\t", phi1 / M_PI * 180.0);
             phi1 = 2 * atan2((b - sqrt(a * a + b * b - c * c)), (a + c));
             phi1 = wrapTo2Pi(phi1);
         }
         if (!(phi4 >= -M_PI / 2 && phi4 <= M_PI / 2))
         {
-            RCLCPP_INFO(rclcpp::get_logger("Kinematics"), "phi4 1: %.2f invalid\t", phi4 / M_PI * 180.0f);
+            RCLCPP_INFO(rclcpp::get_logger("Kinematics"), "phi4 1: %.2f invalid\t", phi4 / M_PI * 180.0);
             phi4 = 2 * atan2((e - sqrt(d * d + e * e - f * f)), (d + f));
         }
 
@@ -99,7 +99,7 @@ namespace kinematics
      */
     inline double wrapTo2Pi(double radian)
     {
-        return (radian >= 0.0f) ? radian : (radian + 2 * M_PI);
+        return (radian >= 0.0) ? radian : (radian + 2 * M_PI);
     }
 
 } // namespace kinematics

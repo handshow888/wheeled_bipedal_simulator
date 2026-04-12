@@ -13,42 +13,42 @@ typedef struct
     uint64_t ErrorCount;
     uint64_t UpdateCount;
 
-    float q[4];        // 四元数估计值
-    float GyroBias[3]; // 陀螺仪零偏估计值
+    double q[4];        // 四元数估计值
+    double GyroBias[3]; // 陀螺仪零偏估计值
 
-    float Gyro[3];
-    float Accel[3];
+    double Gyro[3];
+    double Accel[3];
 
-    float OrientationCosine[3];
+    double OrientationCosine[3];
 
-    float accLPFcoef;
-    float gyro_norm;
-    float accl_norm;
-    float AdaptiveGainScale;
+    double accLPFcoef;
+    double gyro_norm;
+    double accl_norm;
+    double AdaptiveGainScale;
 
-    float Roll;
-    float Pitch;
-    float Yaw;
+    double Roll;
+    double Pitch;
+    double Yaw;
 
-    float YawTotalAngle;
+    double YawTotalAngle;
 
-    float Q1; // 四元数更新过程噪声
-    float Q2; // 陀螺仪零偏过程噪声
-    float R;  // 加速度计量测噪声
+    double Q1; // 四元数更新过程噪声
+    double Q2; // 陀螺仪零偏过程噪声
+    double R;  // 加速度计量测噪声
 
-    float dt; // 姿态更新周期
-    Eigen::MatrixXd ChiSquare;// 卡方检验检测函数
-    float ChiSquareTestThreshold; // 卡方检验阈值
-    float lambda;                 // 渐消因子
+    double dt; // 姿态更新周期
+    Eigen::Matrix<double, 1, 1> ChiSquare;// 卡方检验检测函数
+    double ChiSquareTestThreshold; // 卡方检验阈值
+    double lambda;                 // 渐消因子
 
     int16_t YawRoundCount;
 
-    float YawAngleLast;
+    double YawAngleLast;
 } QEKF_INS_t;
 
 extern QEKF_INS_t QEKF_INS;
 
-void IMU_QuaternionEKF_Init(float process_noise1, float process_noise2, float measure_noise, float lambda, float lpf);
-void IMU_QuaternionEKF_Update(float gx, float gy, float gz, float ax, float ay, float az, float dt);
+void IMU_QuaternionEKF_Init(double process_noise1, double process_noise2, double measure_noise, double lambda, double lpf);
+void IMU_QuaternionEKF_Update(double gx, double gy, double gz, double ax, double ay, double az, double dt);
 
 #endif
