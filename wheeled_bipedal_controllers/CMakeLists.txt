@@ -17,9 +17,9 @@ find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 
 include_directories(include)
-# include(
-#   ${EIGEN3_INCLUDE_DIRS}
-# )
+include_directories(
+  ${EIGEN3_INCLUDE_DIRS}
+)
 
 add_library(${PROJECT_NAME} SHARED
   src/wheeled_bipedal_controller.cpp
