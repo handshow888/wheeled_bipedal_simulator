@@ -149,6 +149,7 @@ public:
             ssize_t len = read(serial_port_, temp_buffer, sizeof(temp_buffer));
             if (len > 0)
             {
+                // std::cout << "read len:" << len << std::endl;
                 buffer.insert(buffer.end(), temp_buffer, temp_buffer + len);
 
                 // 仅当缓冲区数据量 ≥ 最小包长度时，才尝试解析

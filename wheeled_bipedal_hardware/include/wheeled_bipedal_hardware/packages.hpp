@@ -1,35 +1,50 @@
 #pragma once
+
 #include <cstdint>
 #include <vector>
 
 struct ReceivePackage
 {
     uint8_t header = 0x5A;
-    float aaa;
-    // others
+    float ax;
+    float ay;
+    float az;
+    float gx;
+    float gy;
+    float gz;
     uint16_t crc16 = 0xFFFF;
 } __attribute__((packed));
 
 struct ReceivePackage2
 {
     uint8_t header = 0x5B;
+    uint8_t motorID;
+    float motorPos; // rad [-4pi, 4pi]
+    float motorVel; // rad/s [-45.0, 45.0]
+    float motorTor;   // Nm
+    uint16_t crc16 = 0xFFFF;
+} __attribute__((packed));
+
+struct ReceivePackage3
+{
+    uint8_t header = 0x5C;
     int aaa;
-    // others
+    int bbb;
     uint16_t crc16 = 0xFFFF;
 } __attribute__((packed));
 
 struct SendPackage
 {
     uint8_t header = 0xA5;
-    float aaa;
-    // others
+    int aaa;
+    int bbb;
     uint16_t crc16 = 0xFFFF;
 } __attribute__((packed));
 
 struct SendPackage2
 {
     uint8_t header = 0xA6;
-    int aaa;
+    float aaa;
     // others
     uint16_t crc16 = 0xFFFF;
 } __attribute__((packed));
