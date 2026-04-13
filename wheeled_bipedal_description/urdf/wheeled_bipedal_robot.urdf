@@ -2,8 +2,8 @@
 <!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
      Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
-<robot name="wheeled_bipedal_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
-  
+     <robot name="wheeled_bipedal_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
   <!-- <link name="world"/>
   <joint name="fixed_to_world" type="fixed">
     <parent link="world"/>
@@ -22,17 +22,17 @@
     name="base_link">
     <inertial>
       <origin
-        xyz="0.0021437 -0.0018095 0.031519"
+        xyz="-0.00215502838919539 0.00283399249034184 0.0316431058996148"
         rpy="0 0 0" />
       <mass
-        value="1.339" />
+        value="1.3499608452684" />
       <inertia
-        ixx="0.031029"
-        ixy="0.000278"
-        ixz="0.000114"
-        iyy="0.017099"
-        iyz="-0.00017"
-        izz="0.044317" />
+        ixx="0.00353967584787795"
+        ixy="9.6043096456703E-07"
+        ixz="2.45943102459161E-06"
+        iyy="0.00264076380931398"
+        iyz="-3.98843753100884E-07"
+        izz="0.00484627425747884" />
     </inertial>
     <visual>
       <origin
@@ -45,7 +45,7 @@
       <material
         name="">
         <color
-          rgba="0.79216 0.81961 0.93333 1" />
+          rgba="1 1 1 1" />
       </material>
     </visual>
     <collision>
@@ -62,17 +62,17 @@
     name="LF_upper_link">
     <inertial>
       <origin
-        xyz="0.04809 -0.017442 0.00033347"
+        xyz="0.0530234105026395 0.00243993486683702 0.000348505716882719"
         rpy="0 0 0" />
       <mass
-        value="0.21238" />
+        value="0.203214967263105" />
       <inertia
-        ixx="0.000116"
-        ixy="-0.000106"
-        ixz="4E-06"
-        iyy="0.000794"
-        iyz="1E-06"
-        izz="0.000814" />
+        ixx="4.8634522674398E-05"
+        ixy="-2.77967065512027E-20"
+        ixz="-5.84486963220434E-06"
+        iyy="0.000544791283299054"
+        iyz="2.06084811787227E-20"
+        izz="0.000508790934985231" />
     </inertial>
     <visual>
       <origin
@@ -85,7 +85,7 @@
       <material
         name="">
         <color
-          rgba="0.79216 0.81961 0.93333 1" />
+          rgba="1 1 1 1" />
       </material>
     </visual>
     <collision>
@@ -98,29 +98,42 @@
       </geometry>
     </collision>
   </link>
-  <joint name="LF_hip_joint" type="revolute">
-    <origin xyz="0.057024 0.25604 0.053" rpy="0 0.43149 -0.011811" />
-    <parent link="base_link" />
-    <child link="LF_upper_link" />
-    <axis xyz="0 1 0" />
-    <limit lower="-2.0" upper="1.57" effort="10.0" velocity="10.0"/>
-    <dynamics damping="0.05" friction="0.001"/>
+  <joint
+    name="LF_hip_joint"
+    type="revolute">
+    <origin
+      xyz="0.0539490569013894 0.188500397979763 0.0529845745411515"
+      rpy="0 0.418404494646771 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="LF_upper_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2.0"
+      upper="1.0"
+      effort="11"
+      velocity="45" />
+    <dynamics
+      damping="0.05"
+      friction="0.001" />
   </joint>
   <link
     name="LF_lower_link">
     <inertial>
       <origin
-        xyz="0.1231 -0.0078704 -0.00048416"
+        xyz="0.120115230888246 -0.0072055896042984 0.000494387081724862"
         rpy="0 0 0" />
       <mass
-        value="0.2511" />
+        value="0.245891086986948" />
       <inertia
-        ixx="5.8E-05"
-        ixy="1.7E-05"
-        ixz="-1E-05"
-        iyy="0.002071"
-        iyz="0"
-        izz="0.002022" />
+        ixx="5.55405505918255E-05"
+        ixy="1.17193011843841E-05"
+        ixz="-1.00813083042531E-05"
+        iyy="0.00190803372531499"
+        iyz="-4.59554401575612E-08"
+        izz="0.00186124051483432" />
     </inertial>
     <visual>
       <origin
@@ -146,28 +159,40 @@
       </geometry>
     </collision>
   </link>
-  <joint name="LF_knee_joint" type="continuous">
-    <origin xyz="0.15 0.015 0" rpy="-3.1416 1.1851 -3.1416" />
-    <parent link="LF_upper_link" />
-    <child link="LF_lower_link" />
-    <axis xyz="0 1 0" />
-    <dynamics damping="0.05" friction="0.001"/>
+  <joint
+    name="LF_knee_joint"
+    type="continuous">
+    <origin
+      xyz="0.15 0 0"
+      rpy="3.1416 1.0079 3.1416" />
+    <parent
+      link="LF_upper_link" />
+    <child
+      link="LF_lower_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="11"
+      velocity="45" />
+    <dynamics
+      damping="0.05"
+      friction="0.001" />
   </joint>
   <link
     name="left_wheel_link">
     <inertial>
       <origin
-        xyz="-2E-06 3E-06 0"
+        xyz="-2.89847656986808E-09 -1.20107608525544E-07 -4.70302162491887E-09"
         rpy="0 0 0" />
       <mass
-        value="0.85254" />
+        value="0.85253737658222" />
       <inertia
-        ixx="0.001074"
-        ixy="0"
-        ixz="0"
-        iyy="0.001774"
-        iyz="0"
-        izz="0.001074" />
+        ixx="0.00107379977439952"
+        ixy="-2.07706445747612E-10"
+        ixz="-2.72710880787341E-09"
+        iyy="0.00177447879904844"
+        iyz="-1.675215104876E-10"
+        izz="0.00107379389917839" />
     </inertial>
     <visual>
       <origin
@@ -180,7 +205,7 @@
       <material
         name="">
         <color
-          rgba="0.29804 0.29804 0.29804 1" />
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
       </material>
     </visual>
     <collision>
@@ -193,29 +218,40 @@
       </geometry>
     </collision>
   </link>
-  <joint name="left_wheel_joint" type="continuous">
-    <origin xyz="0.249998873591879 -0.0491030149636819 0" rpy="-3.13051030477686 -0.753563717743009 3.1253968717351" />
-    <parent link="LF_lower_link" />
-    <child link="left_wheel_link" />
-    <axis xyz="0.0118103395321176 0.999930255507921 0" />
-    <dynamics damping="0.05" friction="0.001"/>
-    <limit effort="10.0" velocity="20.0"/>
+  <joint
+    name="left_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="0.25 0.0341 0"
+      rpy="-3.1416 0.92403 -3.1416" />
+    <parent
+      link="LF_lower_link" />
+    <child
+      link="left_wheel_link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      effort="11"
+      velocity="45" />
+    <dynamics
+      damping="0.05"
+      friction="0.001" />
   </joint>
   <link
     name="LR_upper_link">
     <inertial>
       <origin
-        xyz="0.051202 -0.01272 -0.00035505"
+        xyz="0.0498560945966102 -0.0173582890215016 -0.000327687974493687"
         rpy="0 0 0" />
       <mass
-        value="0.19947" />
+        value="0.216125043821731" />
       <inertia
-        ixx="6.3E-05"
-        ixy="-4.9E-05"
-        ixz="-5E-06"
-        iyy="0.000751"
-        iyz="0"
-        izz="0.00073" />
+        ixx="6.44384053033367E-05"
+        ixy="-1.26584224620814E-20"
+        ixz="5.55472055153482E-06"
+        iyy="0.00055586113305013"
+        iyz="2.02691820312111E-20"
+        izz="0.000524493419213624" />
     </inertial>
     <visual>
       <origin
@@ -228,7 +264,7 @@
       <material
         name="">
         <color
-          rgba="0.79216 0.81961 0.93333 1" />
+          rgba="1 1 1 1" />
       </material>
     </visual>
     <collision>
@@ -241,29 +277,42 @@
       </geometry>
     </collision>
   </link>
-  <joint name="LR_hip_joint" type="revolute">
-    <origin xyz="-0.051597 0.20412 0.053" rpy="-3.1416 0.51685 3.1298" />
-    <parent link="base_link" />
-    <child link="LR_upper_link" />
-    <axis xyz="0 1 0" />
-    <limit lower="-0.9" upper="2.089" effort="10.0" velocity="10.0"/>
-    <dynamics damping="0.05" friction="0.001"/>
+  <joint
+    name="LR_hip_joint"
+    type="revolute">
+    <origin
+      xyz="-0.054051 0.2567 0.052881"
+      rpy="3.1416 0.20596 3.1416" />
+    <parent
+      link="base_link" />
+    <child
+      link="LR_upper_link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="-1.7"
+      upper="3.14"
+      effort="11"
+      velocity="45" />
+    <dynamics
+      damping="0.05"
+      friction="0.001" />
   </joint>
   <link
     name="LR_lower_link">
     <inertial>
       <origin
-        xyz="0.12012 0.0077944 -0.00049441"
+        xyz="0.123096227304895 0.00712959165653282 0.000484131028252427"
         rpy="0 0 0" />
       <mass
-        value="0.24589" />
+        value="0.251100146740144" />
       <inertia
-        ixx="5.6E-05"
-        ixy="-1.4E-05"
-        ixz="-1E-05"
-        iyy="0.001963"
-        iyz="0"
-        izz="0.001916" />
+        ixx="5.80691555041019E-05"
+        ixy="-1.40237755290707E-05"
+        ixz="-1.04444252868863E-05"
+        iyy="0.0020132375132507"
+        iyz="5.51199776450082E-08"
+        izz="0.00196400981753058" />
     </inertial>
     <visual>
       <origin
@@ -289,28 +338,40 @@
       </geometry>
     </collision>
   </link>
-  <joint name="LR_knee_joint" type="continuous">
-    <origin xyz="0.149999999999806 -0.0300000000000002 0" rpy="3.14159265357704 -1.20970432068389 -3.1415926535845" />
-    <parent link="LR_upper_link" />
-    <child link="LR_lower_link" />
-    <axis xyz="0 1 0" />
-    <dynamics damping="0.05" friction="0.001"/>
+  <joint
+    name="LR_knee_joint"
+    type="continuous">
+    <origin
+      xyz="0.15 0 0"
+      rpy="3.1416 -0.94911 -3.1416" />
+    <parent
+      link="LR_upper_link" />
+    <child
+      link="LR_lower_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="11"
+      velocity="45" />
+    <dynamics
+      damping="0.05"
+      friction="0.001" />
   </joint>
   <link
     name="RF_upper_link">
     <inertial>
       <origin
-        xyz="0.04809 0.017442 0.00033347"
+        xyz="0.0530234105026711 -0.00197498016136682 0.000348505716875502"
         rpy="0 0 0" />
       <mass
-        value="0.21238" />
+        value="0.203214967263132" />
       <inertia
-        ixx="0.000116"
-        ixy="0.000106"
-        ixz="4E-06"
-        iyy="0.000794"
-        iyz="1E-06"
-        izz="0.000814" />
+        ixx="4.86337215284326E-05"
+        ixy="3.69223440146467E-20"
+        ixz="-5.84497147994185E-06"
+        iyy="0.000544791283299105"
+        iyz="-2.97892553998722E-20"
+        izz="0.000508791736131249" />
     </inertial>
     <visual>
       <origin
@@ -323,7 +384,7 @@
       <material
         name="">
         <color
-          rgba="0.79216 0.81961 0.93333 1" />
+          rgba="1 1 1 1" />
       </material>
     </visual>
     <collision>
@@ -336,29 +397,42 @@
       </geometry>
     </collision>
   </link>
-  <joint name="RF_hip_joint" type="revolute">
-    <origin xyz="0.05096 -0.25732 0.053" rpy="0 0.40442 -0.011811" />
-    <parent link="base_link" />
-    <child link="RF_upper_link" />
-    <axis xyz="0 1 0" />
-    <limit lower="-2.0" upper="1.57" effort="10.0" velocity="10.0"/>
-    <dynamics damping="0.05" friction="0.001"/>
+  <joint
+    name="RF_hip_joint"
+    type="revolute">
+    <origin
+      xyz="0.053949 -0.1885 0.052985"
+      rpy="0 0.42227 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="RF_upper_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-2.0"
+      upper="1.0"
+      effort="11"
+      velocity="45" />
+    <dynamics
+      damping="0.05"
+      friction="0.001" />
   </joint>
   <link
     name="RF_lower_link">
     <inertial>
       <origin
-        xyz="0.1231 0.0078704 -0.00048416"
+        xyz="0.120115230865687 0.0068213310296161 0.00049438725731743"
         rpy="0 0 0" />
       <mass
-        value="0.2511" />
+        value="0.245891088613036" />
       <inertia
-        ixx="5.8E-05"
-        ixy="-1.7E-05"
-        ixz="-1E-05"
-        iyy="0.002071"
-        iyz="0"
-        izz="0.002022" />
+        ixx="5.55405507461205E-05"
+        ixy="-1.17193008328285E-05"
+        ixz="-1.00813109316568E-05"
+        iyy="0.00190803372886442"
+        iyz="4.59554845054051E-08"
+        izz="0.00186124051833296" />
     </inertial>
     <visual>
       <origin
@@ -384,28 +458,40 @@
       </geometry>
     </collision>
   </link>
-  <joint name="RF_knee_joint" type="continuous">
-    <origin xyz="0.149999999999924 -0.0149999999999972 0" rpy="-3.14159265353526 1.17572223524246 -3.14159265353876" />
-    <parent link="RF_upper_link" />
-    <child link="RF_lower_link" />
-    <axis xyz="0 1 0" />
-    <dynamics damping="0.05" friction="0.001"/>
+  <joint
+    name="RF_knee_joint"
+    type="continuous">
+    <origin
+      xyz="0.15 0 0"
+      rpy="3.1416 0.98316 3.1416" />
+    <parent
+      link="RF_upper_link" />
+    <child
+      link="RF_lower_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="11"
+      velocity="45" />
+    <dynamics
+      damping="0.05"
+      friction="0.001" />
   </joint>
   <link
     name="right_wheel_link">
     <inertial>
       <origin
-        xyz="-1E-06 -1E-06 0"
+        xyz="1.73627831834278E-08 6.01580871506524E-08 1.21634161215356E-08"
         rpy="0 0 0" />
       <mass
-        value="0.85254" />
+        value="0.85253699152407" />
       <inertia
-        ixx="0.0010739"
-        ixy="8E-06"
-        ixz="0"
-        iyy="0.0017744"
-        iyz="0"
-        izz="0.0010738" />
+        ixx="0.00107379884362766"
+        ixy="7.84998765083961E-10"
+        ixz="-2.69530432741032E-09"
+        iyy="0.00177447878809603"
+        iyz="5.36424427417013E-10"
+        izz="0.00107379291833096" />
     </inertial>
     <visual>
       <origin
@@ -418,7 +504,7 @@
       <material
         name="">
         <color
-          rgba="0.29804 0.29804 0.29804 1" />
+          rgba="0.298039215686275 0.298039215686275 0.298039215686275 1" />
       </material>
     </visual>
     <collision>
@@ -431,29 +517,40 @@
       </geometry>
     </collision>
   </link>
-  <joint name="right_wheel_joint" type="continuous">
-    <origin xyz="0.249999235453996 0.0491014228925789 0" rpy="-3.1301112502539 -0.771230823255971 3.12512125115761" />
-    <parent link="RF_lower_link" />
-    <child link="right_wheel_link" />
-    <axis xyz="0.0118103395321099 0.999930255507921 0" />
-    <dynamics damping="0.05" friction="0.001"/>
-    <limit effort="10.0" velocity="20.0"/>
+  <joint
+    name="right_wheel_joint"
+    type="continuous">
+    <origin
+      xyz="0.25 -0.0341 0"
+      rpy="-3.1416 0.95264 3.1416" />
+    <parent
+      link="RF_lower_link" />
+    <child
+      link="right_wheel_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="11"
+      velocity="45" />
+    <dynamics
+      damping="0.05"
+      friction="0.001" />
   </joint>
   <link
     name="RR_upper_link">
     <inertial>
       <origin
-        xyz="0.051202 0.01272 -0.000355"
+        xyz="0.049856094596605 0.0173582890215 -0.000327687974486533"
         rpy="0 0 0" />
       <mass
-        value="0.199469" />
+        value="0.216125043821758" />
       <inertia
-        ixx="6.3E-05"
-        ixy="4.9E-05"
-        ixz="-5E-06"
-        iyy="0.000751"
-        iyz="0"
-        izz="0.00073" />
+        ixx="6.44170723497898E-05"
+        ixy="-7.7516516919022E-20"
+        ixz="5.54868678398736E-06"
+        iyy="0.00055586113305018"
+        iyz="-3.37162178097853E-20"
+        izz="0.000524514752167222" />
     </inertial>
     <visual>
       <origin
@@ -479,29 +576,42 @@
       </geometry>
     </collision>
   </link>
-  <joint name="RR_hip_joint" type="revolute">
-    <origin xyz="-0.0564037489137038 -0.202850608084869 0.0529999999998718" rpy="-3.14159265358979 0.540465075056446 3.12978203948131" />
-    <parent link="base_link" />
-    <child link="RR_upper_link" />
-    <axis xyz="0 1 0" />
-    <limit lower="-0.9" upper="2.089" effort="10.0" velocity="10.0"/>
-    <dynamics damping="0.05" friction="0.001"/>
+  <joint
+    name="RR_hip_joint"
+    type="revolute">
+    <origin
+      xyz="-0.054051 -0.2567 0.052881"
+      rpy="-3.1416 0.14975 -3.1416" />
+    <parent
+      link="base_link" />
+    <child
+      link="RR_upper_link" />
+    <axis
+      xyz="0 -1 0" />
+    <limit
+      lower="-1.7"
+      upper="3.14"
+      effort="11"
+      velocity="45" />
+    <dynamics
+      damping="0.05"
+      friction="0.001" />
   </joint>
   <link
     name="RR_lower_link">
     <inertial>
       <origin
-        xyz="0.12012 -0.0077944 -0.00049441"
+        xyz="0.123096227254172 -0.00712959162647342 0.000484131222226708"
         rpy="0 0 0" />
       <mass
-        value="0.24589" />
+        value="0.251100147559427" />
       <inertia
-        ixx="5.6E-05"
-        ixy="1.4E-05"
-        ixz="-1E-05"
-        iyy="0.001963"
-        iyz="0"
-        izz="0.001916" />
+        ixx="5.80691555907058E-05"
+        ixy="1.4023775204088E-05"
+        ixz="-1.04444279227776E-05"
+        iyy="0.00201323751693658"
+        iyz="-5.51200534342429E-08"
+        izz="0.00196400982117135" />
     </inertial>
     <visual>
       <origin
@@ -527,76 +637,23 @@
       </geometry>
     </collision>
   </link>
-  <joint name="RR_knee_joint" type="continuous">
-    <origin xyz="0.14999999999987 0.03 0" rpy="-3.14159265357348 -1.21487868120374 3.14159265357644" />
-    <parent link="RR_upper_link" />
-    <child link="RR_lower_link" />
-    <axis xyz="0 1 0" />
-    <dynamics damping="0.05" friction="0.001"/>
+  <joint
+    name="RR_knee_joint"
+    type="continuous">
+    <origin
+      xyz="0.15 0 0"
+      rpy="-3.1416 -0.90835 3.1416" />
+    <parent
+      link="RR_upper_link" />
+    <child
+      link="RR_lower_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      effort="11"
+      velocity="45" />
+    <dynamics
+      damping="0.05"
+      friction="0.001" />
   </joint>
-
-  <gazebo>
-      <joint name='LR_WheelJointFixed' type='revolute'>
-        <pose relative_to='LR_lower_link'>0.25 0.049097 0 -0.009804 -0.6928 0.015349</pose>
-        <parent>LR_lower_link</parent>
-        <child>left_wheel_link</child>
-        <axis>
-          <xyz>-0.01181 -0.99993 0</xyz>
-          <!-- <limit>
-            <lower>-3.14</lower>
-            <upper>3.14</upper>
-            <effort>20</effort>
-            <velocity>30</velocity>
-          </limit> -->
-        </axis>
-        <dynamic>
-          <damping>0.05</damping>
-          <friction>0.001</friction>
-        </dynamic>
-      </joint>
-  </gazebo>
-
-  <gazebo>
-      <joint name='RR_WheelJointFixed' type='revolute'>
-        <pose relative_to='RR_lower_link'>0.25 -0.049099 0 -0.0094417 -0.67436 0.015121</pose>
-        <parent>RR_lower_link</parent>
-        <child>right_wheel_link</child>
-        <axis>
-          <xyz>-0.01181 -0.99993 0</xyz>
-          <!-- <limit>
-            <lower>-3.14</lower>
-            <upper>3.14</upper>
-            <effort>20</effort>
-            <velocity>30</velocity>
-          </limit> -->
-        </axis>
-        <dynamic>
-          <damping>0.05</damping>
-          <friction>0.001</friction>
-        </dynamic>
-      </joint>
-  </gazebo>
-
-  <gazebo>
-    <plugin name="gazebo_ros_joint_state_publisher" filename="libgazebo_ros_joint_state_publisher.so">
-      <!-- 此处发布 joint_state_broadcaster/JointStateBroadcaster 不发布的tf，用作rviz可视化 -->
-      <ros>
-        <namespace>/</namespace>
-        <argument>joint_states:=joint_states</argument>
-      </ros>
-      <update_rate>30</update_rate>
-      <!-- <joint_name>LF_hip_joint</joint_name> -->
-      <joint_name>LF_knee_joint</joint_name>
-      <!-- <joint_name>left_wheel_joint</joint_name> -->
-      <!-- <joint_name>LR_hip_joint</joint_name> -->
-      <joint_name>LR_knee_joint</joint_name>
-      <!-- <joint_name>RF_hip_joint</joint_name> -->
-      <joint_name>RF_knee_joint</joint_name>
-      <!-- <joint_name>right_wheel_joint</joint_name> -->
-      <!-- <joint_name>RR_hip_joint</joint_name> -->
-      <joint_name>RR_knee_joint</joint_name>
-      <joint_name>LR_WheelJointFixed</joint_name>
-      <joint_name>RR_WheelJointFixed</joint_name>
-    </plugin>
-  </gazebo>
 </robot>
