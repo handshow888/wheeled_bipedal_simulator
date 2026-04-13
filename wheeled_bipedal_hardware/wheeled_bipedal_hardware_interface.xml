@@ -1,9 +1,7 @@
 <library path="wheeled_bipedal_hardware">
-    <class name="mobile_base_hardware/MobileBaseHardwareInterface" type="mobile_base_hardware::MobileBaseHardwareInterface" base_class_type="hardware_interface::SystemInterface">
+    <class name="wheeled_bipedal_hardware/WheeledBipedalHardwareInterface"
+        type="wheeled_bipedal_hardware::WheeledBipedalHardwareInterface"
+        base_class_type="wheeled_bipedal_hardware::SystemInterface">
         <description>Mobile base hardware interface</description>
-    </class>
-
-    <class name="arm_hardware/ArmHardwareInterface" type="arm_hardware::ArmHardwareInterface" base_class_type="hardware_interface::SystemInterface">
-        <description>Arm hardware interface</description>
     </class>
 </library>

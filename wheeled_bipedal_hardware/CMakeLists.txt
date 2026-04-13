@@ -20,23 +20,22 @@ ament_target_dependencies(serial_test
   rclcpp
 )
 
-# add_library(${PROJECT_NAME} SHARED
-#   src/mobile_base_hardware_interface.cpp
-#   src/arm_hardware_interface.cpp
-# )
+add_library(${PROJECT_NAME} SHARED
+  src/wheeled_bipedal_hardware_interface.cpp
+)
 
-# ament_target_dependencies(${PROJECT_NAME}
-#   rclcpp
-#   rclcpp_lifecycle
-#   pluginlib
-#   hardware_interface
-# )
+ament_target_dependencies(${PROJECT_NAME}
+  rclcpp
+  rclcpp_lifecycle
+  pluginlib
+  hardware_interface
+)
 
-# pluginlib_export_plugin_description_file(hardware_interface my_robot_hardware_interface.xml)
+pluginlib_export_plugin_description_file(hardware_interface wheeled_bipedal_hardware_interface.xml)
 
 install(
   TARGETS
-  # ${PROJECT_NAME}
+  ${PROJECT_NAME}
   serial_test
   DESTINATION lib/${PROJECT_NAME}
 )
@@ -46,14 +45,14 @@ install(
   DESTINATION include
 )
 
-# ament_export_libraries(${PROJECT_NAME})
+ament_export_libraries(${PROJECT_NAME})
 
-# ament_export_dependencies(
-#   rclcpp
-#   rclcpp_lifecycle
-#   pluginlib
-#   hardware_interface
-# )
+ament_export_dependencies(
+  rclcpp
+  rclcpp_lifecycle
+  pluginlib
+  hardware_interface
+)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()

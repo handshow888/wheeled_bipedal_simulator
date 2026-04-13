@@ -17,9 +17,7 @@ public:
         serial_core_ = std::make_unique<USBSerial>("/dev/ttyS0", 921600);
         serial_core_->start_receive_thread(
             [this](const uint8_t *data)
-            {
-                this->receiveCallback(data);
-            },
+            { this->receiveCallback(data); },
             header_map);
     }
 
