@@ -15,10 +15,10 @@ find_package(hardware_interface REQUIRED)
 
 include_directories(include)
 
-add_executable(serial_test src/serial_test.cpp)
-ament_target_dependencies(serial_test
-  rclcpp
-)
+# add_executable(serial_test src/serial_test.cpp)
+# ament_target_dependencies(serial_test
+#   rclcpp
+# )
 
 add_library(${PROJECT_NAME} SHARED
   src/wheeled_bipedal_hardware_interface.cpp
@@ -36,7 +36,7 @@ pluginlib_export_plugin_description_file(hardware_interface wheeled_bipedal_hard
 install(
   TARGETS
   ${PROJECT_NAME}
-  serial_test
+  # serial_test
   DESTINATION lib/${PROJECT_NAME}
 )
 

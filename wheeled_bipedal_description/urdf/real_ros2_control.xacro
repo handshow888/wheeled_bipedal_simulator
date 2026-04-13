@@ -6,39 +6,37 @@
 
     <ros2_control name="WheeledBipedalRobot" type="system">
         <hardware>
-            <plugin>my_robot_hardware/MyRobotHardware</plugin>
+            <plugin>wheeled_bipedal_hardware/WheeledBipedalHardwareInterface</plugin>
             <param name="serial_port">/dev/ttyUSB0</param>
-            <param name="baudrate">115200</param>
-            <!-- 异步模式标志 -->
-            <param name="is_async">true</param>
+            <param name="baud_rate">921600</param>
         </hardware>
         <joint name="LF_hip_joint">
-            <command_interface name="position" />
-            <command_interface name="velocity" />
+            <!-- <command_interface name="position" /> -->
+            <!-- <command_interface name="velocity" /> -->
             <command_interface name="effort" />
             <state_interface name="position" />
             <state_interface name="velocity" />
             <state_interface name="effort" />
         </joint>
         <joint name="LR_hip_joint">
-            <command_interface name="position" />
-            <command_interface name="velocity" />
+            <!-- <command_interface name="position" /> -->
+            <!-- <command_interface name="velocity" /> -->
             <command_interface name="effort" />
             <state_interface name="position" />
             <state_interface name="velocity" />
             <state_interface name="effort" />
         </joint>
         <joint name="RF_hip_joint">
-            <command_interface name="position" />
-            <command_interface name="velocity" />
+            <!-- <command_interface name="position" /> -->
+            <!-- <command_interface name="velocity" /> -->
             <command_interface name="effort" />
             <state_interface name="position" />
             <state_interface name="velocity" />
             <state_interface name="effort" />
         </joint>
         <joint name="RR_hip_joint">
-            <command_interface name="position" />
-            <command_interface name="velocity" />
+            <!-- <command_interface name="position" /> -->
+            <!-- <command_interface name="velocity" /> -->
             <command_interface name="effort" />
             <state_interface name="position" />
             <state_interface name="velocity" />
@@ -46,16 +44,16 @@
         </joint>
 
         <joint name="left_wheel_joint">
-            <command_interface name="position" />
-            <command_interface name="velocity" />
+            <!-- <command_interface name="position" /> -->
+            <!-- <command_interface name="velocity" /> -->
             <command_interface name="effort" />
             <!-- <state_interface name="position" /> -->
             <state_interface name="velocity" />
             <!-- <state_interface name="effort" /> -->
         </joint>
         <joint name="right_wheel_joint">
-            <command_interface name="position" />
-            <command_interface name="velocity" />
+            <!-- <command_interface name="position" /> -->
+            <!-- <command_interface name="velocity" /> -->
             <command_interface name="effort" />
             <!-- <state_interface name="position" /> -->
             <state_interface name="velocity" />
@@ -67,12 +65,12 @@
             <state_interface name="orientation.y"/>
             <state_interface name="orientation.z"/>
             <state_interface name="orientation.w"/> -->
-            <state_interface name="angular_velocity.x"/>
-            <state_interface name="angular_velocity.y"/>
-            <state_interface name="angular_velocity.z"/>
-            <state_interface name="linear_acceleration.x"/>
-            <state_interface name="linear_acceleration.y"/>
-            <state_interface name="linear_acceleration.z"/>
+            <state_interface name="angular_velocity.x" />
+            <state_interface name="angular_velocity.y" />
+            <state_interface name="angular_velocity.z" />
+            <state_interface name="linear_acceleration.x" />
+            <state_interface name="linear_acceleration.y" />
+            <state_interface name="linear_acceleration.z" />
         </sensor>
     </ros2_control>
 

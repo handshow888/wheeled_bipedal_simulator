@@ -21,30 +21,29 @@ struct ReceivePackage2
     uint8_t motorID;
     float motorPos; // rad [-4pi, 4pi]
     float motorVel; // rad/s [-45.0, 45.0]
-    float motorTor;   // Nm
+    float motorTor; // Nm
     uint16_t crc16 = 0xFFFF;
 } __attribute__((packed));
 
-struct ReceivePackage3
-{
-    uint8_t header = 0x5C;
-    int aaa;
-    int bbb;
-    uint16_t crc16 = 0xFFFF;
-} __attribute__((packed));
+// struct ReceivePackage3
+// {
+//     uint8_t header = 0x5C;
+//     int aaa;
+//     int bbb;
+//     uint16_t crc16 = 0xFFFF;
+// } __attribute__((packed));
 
 struct SendPackage
 {
     uint8_t header = 0xA5;
-    int aaa;
-    int bbb;
+    float motors_effort[6] = {0.0}; // 按照电机ID:RR LR RF LF LW RW
     uint16_t crc16 = 0xFFFF;
 } __attribute__((packed));
 
-struct SendPackage2
-{
-    uint8_t header = 0xA6;
-    float aaa;
-    // others
-    uint16_t crc16 = 0xFFFF;
-} __attribute__((packed));
+// struct SendPackage2
+// {
+//     uint8_t header = 0xA6;
+//     float aaa;
+//     // others
+//     uint16_t crc16 = 0xFFFF;
+// } __attribute__((packed));

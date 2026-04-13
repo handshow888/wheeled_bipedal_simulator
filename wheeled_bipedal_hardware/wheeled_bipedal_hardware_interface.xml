@@ -2,6 +2,6 @@
     <class name="wheeled_bipedal_hardware/WheeledBipedalHardwareInterface"
         type="wheeled_bipedal_hardware::WheeledBipedalHardwareInterface"
         base_class_type="wheeled_bipedal_hardware::SystemInterface">
-        <description>Mobile base hardware interface</description>
+        <description>Wheeled bipedal robot hardware interface</description>
     </class>
 </library>
