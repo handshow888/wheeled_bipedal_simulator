@@ -76,6 +76,10 @@ namespace wheeled_bipedal_hardware
     std::vector<hardware_interface::StateInterface> WheeledBipedalHardwareInterface::export_state_interfaces()
     {
         std::vector<hardware_interface::StateInterface> state_interfaces;
+        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.x", &oriXYZ));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.y", &oriXYZ));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.z", &oriXYZ));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.w", &oriW));
         state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "linear_acceleration.x", &hw_state_imu_.ax));
         state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "linear_acceleration.y", &hw_state_imu_.ay));
         state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "linear_acceleration.z", &hw_state_imu_.az));
@@ -149,7 +153,7 @@ namespace wheeled_bipedal_hardware
         {
             auto pkg = reinterpret_cast<const ReceivePackage2 *>(data);
             int index = static_cast<int>(pkg->motorID) - 1;
-            latest_motors_state_.at(index).pos = pkg->motorPos / 4.0;
+            latest_motors_state_.at(index).pos = pkg->motorPos;
             latest_motors_state_.at(index).vel = pkg->motorVel;
             latest_motors_state_.at(index).tor = pkg->motorTor;
             break;

@@ -66,6 +66,8 @@ namespace wheeled_bipedal_hardware
 
         // 状态和命令变量
         imuState hw_state_imu_;
+        double oriXYZ = 0.0;
+        double oriW = 1.0;
         // motorState hw_state_rr_motor_; // 右后关节电机
         // motorState hw_state_lr_motor_; // 左后关节电机
         // motorState hw_state_rf_motor_; // 右前关节电机

@@ -15,30 +15,8 @@ controller_manager:
     # effort_controller:
     #   type: effort_controllers/JointGroupEffortController
 
-    wheeled_bipedal_controller:
-      type: wheeled_bipedal_controller/WheeledBipedalController
-
-gazebo_ros2_control:
-  ros__parameters:
-    # 必须为每一个使用 position 或 velocity 接口的关节提供 PID
-    pid_gains:
-      position:
-        LF_hip_joint:
-          kp: 10.0
-          ki: 0.1
-          kd: 1.0
-        LR_hip_joint:
-          kp: 10.0
-          ki: 0.1
-          kd: 1.0
-        RF_hip_joint:
-          kp: 10.0
-          ki: 0.1
-          kd: 1.0
-        RR_hip_joint:
-          kp: 10.0
-          ki: 0.1
-          kd: 1.0
+    # wheeled_bipedal_controller:
+    #   type: wheeled_bipedal_controller/WheeledBipedalController
 
 imu_sensor_broadcaster:
   ros__parameters:

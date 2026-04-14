@@ -1,7 +1,9 @@
 <library path="wheeled_bipedal_hardware">
-    <class name="wheeled_bipedal_hardware/WheeledBipedalHardwareInterface"
-        type="wheeled_bipedal_hardware::WheeledBipedalHardwareInterface"
-        base_class_type="wheeled_bipedal_hardware::SystemInterface">
-        <description>Wheeled bipedal robot hardware interface</description>
-    </class>
+  <class name="wheeled_bipedal_hardware/WheeledBipedalHardwareInterface"
+         type="wheeled_bipedal_hardware::WheeledBipedalHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Custom hardware interface for wheeled bipedal robot.
+    </description>
+  </class>
 </library>

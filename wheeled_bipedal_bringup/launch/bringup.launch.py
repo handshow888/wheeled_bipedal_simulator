@@ -1,21 +1,17 @@
 #!/usr/bin/env python3
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, RegisterEventHandler, TimerAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch.substitutions import Command, LaunchConfiguration
 from launch.conditions import IfCondition
-
+from launch.event_handlers import OnProcessStart
 def generate_launch_description():
     # 获取包路径
     description_pkg = get_package_share_directory('wheeled_bipedal_description')
     bringup_pkg = get_package_share_directory('wheeled_bipedal_bringup')
-    gazebo_ros_share = get_package_share_directory('gazebo_ros')
-
-    use_rviz = LaunchConfiguration('use_rviz')
-    rviz_config_file = LaunchConfiguration('rviz_config_file')
 
     declare_use_rviz_cmd = DeclareLaunchArgument(
         'use_rviz',
@@ -24,35 +20,32 @@ def generate_launch_description():
     declare_rviz_config_file_cmd = DeclareLaunchArgument(
         'rviz_config_file',
         default_value=os.path.join(bringup_pkg, 'rviz', 'gazebo_sim.rviz'),
-        description='Full path to the RVIZ config file to use')  
+        description='Full path to the RVIZ config file to use')
+
+    declare_controller_config_cmd = DeclareLaunchArgument(
+        'controller_config_file',
+        default_value=os.path.join(bringup_pkg, 'config', 'wheeled_bipedal_controllers.yaml'),
+        description='Full path to the ros2_control controller configuration YAML file'
+    )
+
+    use_rviz = LaunchConfiguration('use_rviz')
+    rviz_config_file = LaunchConfiguration('rviz_config_file')
+    controller_config_file = LaunchConfiguration('controller_config_file')
+
+    # xacro
+    urdf_file = os.path.join(description_pkg, 'urdf', 'real_ros2_control.xacro')
+    robot_desc = Command(['xacro ', urdf_file])
 
     # 静态TF发布器
-    # static_tf = Node(
+    # static_tf_node = Node(
     #     package='tf2_ros',
     #     executable='static_transform_publisher',
     #     arguments=['0', '0', '0', '0', '0', '0', 'base_footprint', 'base_link'],
     #     name='tf_footprint_base'
     # )
 
-    # URDF
-    # urdf_file = os.path.join(description_pkg, 'urdf', 'wheeled_bipedal_robot.urdf')
-    # with open(urdf_file, 'r', encoding='utf-8') as infp:
-    #     robot_desc = infp.read()
-
-    # xacro
-    urdf_file = os.path.join(description_pkg, 'urdf', 'gazebo_ros2_control.xacro')
-    robot_desc = Command(['xacro ', urdf_file])
-
-    # 启动Gazebo（使用gazebo.launch.py）
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(gazebo_ros_share, 'launch', 'gazebo.launch.py')
-        ),
-        # launch_arguments={'verbose': 'true'}.items()
-    )
-
     # 机器人状态发布器（将URDF加载到参数服务器）
-    robot_state_publisher = Node(
+    robot_state_publisher_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         name='robot_state_publisher',
@@ -63,21 +56,19 @@ def generate_launch_description():
         }]
     )
 
-    spawn_entity = Node(
-        package='gazebo_ros',
-        executable='spawn_entity.py',
-        arguments=[
-            '-entity', 'wheeled_bipedal_robot',
-            # '-file', urdf_file,
-            '-topic', 'robot_description',
-            '-x', '0',
-            '-y', '0',
-            '-z', '0.5'
-        ],
-        output='screen'
+    controller_manager_node = Node(
+        package='controller_manager',
+        executable='ros2_control_node',
+        # arguments=['--ros-args', '-r', '~/robot_description:=/robot_description'],
+        parameters=[
+            {'robot_description': robot_desc},   # 暂时忽略弃用警告
+            controller_config_file,
+            ],
+        output='screen',
     )
 
-    rviz_cmd = Node(
+
+    rviz_node = Node(
         condition=IfCondition(use_rviz),
         package='rviz2',
         executable='rviz2',
@@ -116,16 +107,18 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        gazebo,
-        # static_tf,
-        robot_state_publisher,
-        spawn_entity,
+        declare_use_rviz_cmd,
+        declare_rviz_config_file_cmd,
+        declare_controller_config_cmd,
+
+        robot_state_publisher_node,
+        controller_manager_node,
+        # static_tf_node,
+
         joint_state_broadcaster_spawner,
         imu_sensor_broadcaster_spawner,
         # diff_drive_controller_spawner,
         # effort_controller_spawner,
-        wheeled_bipedal_controller_spawner,
-        declare_use_rviz_cmd,
-        declare_rviz_config_file_cmd,
-        rviz_cmd
+        # wheeled_bipedal_controller_spawner,
+        rviz_node,
     ])
