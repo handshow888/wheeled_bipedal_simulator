@@ -12,11 +12,11 @@ controller_manager:
     # diff_drive_controller:
     #   type: diff_drive_controller/DiffDriveController
 
-    # effort_controller:
-    #   type: effort_controllers/JointGroupEffortController
+    effort_controller:
+      type: effort_controllers/JointGroupEffortController
 
-    # wheeled_bipedal_controller:
-    #   type: wheeled_bipedal_controller/WheeledBipedalController
+    wheeled_bipedal_controller:
+      type: wheeled_bipedal_controller/WheeledBipedalController
 
 imu_sensor_broadcaster:
   ros__parameters:
@@ -45,7 +45,7 @@ wheeled_bipedal_controller:
         "left_wheel_joint",
         "right_wheel_joint",
       ]
-    joints_bias_values: [0.4314, 2.6247, 0.4043, 2.6011] # upper_link关节电机state position和tf的偏差值 bias = tf - state
+    joints_bias_values: [1.6577,1.6037,1.5967,1.5497] # upper_link关节电机state position和tf的偏差值 bias = tf - state
     command_interface_type: "effort" # "position", "velocity", "effort"
     imu_name: "imu_sensor"
     rod_lengths: [0.150, 0.250, 0.250, 0.150, 0.107992374] # L1 - L5
@@ -55,49 +55,49 @@ wheeled_bipedal_controller:
     leg_length_min: 0.15
     leg_length_max: 0.37
     # LQR的K矩阵拟合多项式的系数（从低次项系数到高次项系数排序）
-    K11poly: [-2.4003, -74.4638, 141.7223, -144.3006]
-    K12poly: [-0.3530, -5.8864, -0.3597, -6.9189]
-    K13poly: [0.0152, -1.5131, 4.3497, -4.2655]
-    K14poly: [-0.5207, -35.8905, 109.2646, -110.7116]
-    K15poly: [21.6983, -123.6705, 255.5451, -184.0317]
-    K16poly: [1.2826, -4.9968, 5.5036, -0.6879]
-    K21poly: [16.0819, -82.4169, 164.4675, -111.5919]
-    K22poly: [2.0054, -9.7618, 21.3189, -15.3129]
-    K23poly: [0.3385, -1.7607, 3.5503, -2.5014]
-    K24poly: [11.3833, -67.4853, 155.8719, -128.4311]
-    K25poly: [5.5447, 135.1007, -390.7470, 383.7428]
-    K26poly: [0.5967, 5.1297, -14.2911, 13.5050]
+    K11poly: [0.0]
+    K12poly: [0.0]
+    K13poly: [0.0]
+    K14poly: [0.0]
+    K15poly: [0.0]
+    K16poly: [0.0]
+    K21poly: [0.0]
+    K22poly: [0.0]
+    K23poly: [0.0]
+    K24poly: [0.0]
+    K25poly: [0.0]
+    K26poly: [0.0]
 
     debug: true # 是否在每次update时获取动态参数
 
     # PID 参数
     # 左腿
     left:
-      leg_length_P: 150.0
-      leg_length_I: 5.0
-      leg_length_D: 30.0
+      leg_length_P: 0.0
+      leg_length_I: 0.0
+      leg_length_D: 0.0
       leg_length: 0.20 # 初始腿长
     # 右腿
     right:
       same_with_left: true # true表示与左腿采用相同参数
-      leg_length_P: 1250.0
-      leg_length_I: 1000.0
-      leg_length_D: 125.0
+      leg_length_P: 0.0
+      leg_length_I: 0.0
+      leg_length_D: 0.0
       leg_length: 0.20 # 初始腿长
     # 腿长PID前馈值
-    leg_length_feedforward: 10.0
+    leg_length_feedforward: 0.0
     # 左右两腿 phi0 角度差pid控制器
-    delta_phi0_P: 500.0
-    delta_phi0_I: 100.0
-    delta_phi0_D: 4.0
+    delta_phi0_P: 0.0
+    delta_phi0_I: 0.0
+    delta_phi0_D: 0.0
     # 角速度PID
-    angular_vel_P: 2.0
-    angular_vel_I: 7.0
-    angular_vel_D: 0.0001
+    angular_vel_P: 0.0
+    angular_vel_I: 0.0
+    angular_vel_D: 0.0
 
     roll_error_P: 0.0
-    roll_error_I: 10.0
-    roll_error_D: 0.0001
+    roll_error_I: 0.0
+    roll_error_D: 0.0
 
 diff_drive_controller:
   ros__parameters:

@@ -52,7 +52,7 @@ def generate_launch_description():
         output='screen',
         parameters=[{
             'robot_description': robot_desc,
-            'publish_frequency': 50.0
+            'publish_frequency': 10.0
         }]
     )
 
@@ -118,7 +118,7 @@ def generate_launch_description():
         joint_state_broadcaster_spawner,
         imu_sensor_broadcaster_spawner,
         # diff_drive_controller_spawner,
-        # effort_controller_spawner,
+        effort_controller_spawner,
         # wheeled_bipedal_controller_spawner,
         rviz_node,
     ])

@@ -14,6 +14,10 @@ namespace wheeled_bipedal_hardware
         rec_pkg_header_map_[0x5A] = sizeof(ReceivePackage);
         rec_pkg_header_map_[0x5B] = sizeof(ReceivePackage2);
 
+        imuGyroOffset[0] = std::stod(info_.hardware_parameters["imuGyroOffset_X"]);
+        imuGyroOffset[1] = std::stod(info_.hardware_parameters["imuGyroOffset_Y"]);
+        imuGyroOffset[2] = std::stod(info_.hardware_parameters["imuGyroOffset_Z"]);
+
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 
@@ -52,6 +56,12 @@ namespace wheeled_bipedal_hardware
         std::lock_guard<std::mutex> lock(state_mutex_);
         hw_state_imu_ = latest_imu_state_;
         hw_state_motors = latest_motors_state_;
+        hw_state_motors[1].pos *= -1;
+        hw_state_motors[3].pos *= -1;
+        RCLCPP_INFO(rclcpp::get_logger("WBHardwareInterface"),
+                    "%.5f %.5f %.5f %.5f %.5f %.5f",
+                    hw_state_motors[0].pos, hw_state_motors[1].pos, hw_state_motors[2].pos, hw_state_motors[3].pos,
+                    hw_state_motors[4].vel, hw_state_motors[5].vel);
         return hardware_interface::return_type::OK;
     }
 
@@ -76,10 +86,10 @@ namespace wheeled_bipedal_hardware
     std::vector<hardware_interface::StateInterface> WheeledBipedalHardwareInterface::export_state_interfaces()
     {
         std::vector<hardware_interface::StateInterface> state_interfaces;
-        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.x", &oriXYZ));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.y", &oriXYZ));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.z", &oriXYZ));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.w", &oriW));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.x", &oriXYZ_));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.y", &oriXYZ_));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.z", &oriXYZ_));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "orientation.w", &oriW_));
         state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "linear_acceleration.x", &hw_state_imu_.ax));
         state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "linear_acceleration.y", &hw_state_imu_.ay));
         state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "linear_acceleration.z", &hw_state_imu_.az));
@@ -103,7 +113,9 @@ namespace wheeled_bipedal_hardware
         state_interfaces.emplace_back(hardware_interface::StateInterface("LF_hip_joint", "velocity", &hw_state_motors[3].vel));
         state_interfaces.emplace_back(hardware_interface::StateInterface("LF_hip_joint", "effort", &hw_state_motors[3].tor));
 
+        state_interfaces.emplace_back(hardware_interface::StateInterface("left_wheel_joint", "position", &hw_state_motors[4].pos));
         state_interfaces.emplace_back(hardware_interface::StateInterface("left_wheel_joint", "velocity", &hw_state_motors[4].vel));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("right_wheel_joint", "position", &hw_state_motors[5].pos));
         state_interfaces.emplace_back(hardware_interface::StateInterface("right_wheel_joint", "velocity", &hw_state_motors[5].vel));
         return state_interfaces;
     }
@@ -141,12 +153,12 @@ namespace wheeled_bipedal_hardware
         case 0x5A:
         {
             auto pkg = reinterpret_cast<const ReceivePackage *>(data);
-            latest_imu_state_.ax = pkg->ax;
-            latest_imu_state_.ay = pkg->ay;
-            latest_imu_state_.az = pkg->az;
-            latest_imu_state_.gx = pkg->gx;
-            latest_imu_state_.gy = pkg->gy;
-            latest_imu_state_.gz = pkg->gz;
+            latest_imu_state_.ax = pkg->ax * 9.81;
+            latest_imu_state_.ay = pkg->ay * 9.81;
+            latest_imu_state_.az = pkg->az * 9.81;
+            latest_imu_state_.gx = (pkg->gx - imuGyroOffset[0]) * (M_PI / 180.0);
+            latest_imu_state_.gy = (pkg->gy - imuGyroOffset[1]) * (M_PI / 180.0);
+            latest_imu_state_.gz = (pkg->gz - imuGyroOffset[2]) * (M_PI / 180.0);
             break;
         }
         case 0x5B:

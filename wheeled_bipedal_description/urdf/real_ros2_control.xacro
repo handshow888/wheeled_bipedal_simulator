@@ -9,6 +9,9 @@
             <plugin>wheeled_bipedal_hardware/WheeledBipedalHardwareInterface</plugin>
             <param name="port_name">/dev/ttyUSB0</param>
             <param name="baud_rate">921600</param>
+            <param name="imuGyroOffset_X">0.618614</param>
+            <param name="imuGyroOffset_Y">0.121066</param>
+            <param name="imuGyroOffset_Z">-1.538492</param>
         </hardware>
         <joint name="LF_hip_joint">
             <!-- <command_interface name="position" /> -->
@@ -47,7 +50,7 @@
             <!-- <command_interface name="position" /> -->
             <!-- <command_interface name="velocity" /> -->
             <command_interface name="effort" />
-            <!-- <state_interface name="position" /> -->
+            <state_interface name="position" />
             <state_interface name="velocity" />
             <!-- <state_interface name="effort" /> -->
         </joint>
@@ -55,7 +58,7 @@
             <!-- <command_interface name="position" /> -->
             <!-- <command_interface name="velocity" /> -->
             <command_interface name="effort" />
-            <!-- <state_interface name="position" /> -->
+            <state_interface name="position" />
             <state_interface name="velocity" />
             <!-- <state_interface name="effort" /> -->
         </joint>
