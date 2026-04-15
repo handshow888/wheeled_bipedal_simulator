@@ -25,13 +25,12 @@ struct ReceivePackage2
     uint16_t crc16 = 0xFFFF;
 } __attribute__((packed));
 
-// struct ReceivePackage3
-// {
-//     uint8_t header = 0x5C;
-//     int aaa;
-//     int bbb;
-//     uint16_t crc16 = 0xFFFF;
-// } __attribute__((packed));
+struct ReceivePackage3
+{
+    uint8_t header = 0x5C;
+    float motors_effort[6] = {0.0};
+    uint16_t crc16 = 0xFFFF;
+} __attribute__((packed));
 
 struct SendPackage
 {

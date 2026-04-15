@@ -136,7 +136,7 @@ public:
                                     ->second;
 
         std::vector<uint8_t> buffer;
-        uint8_t temp_buffer[512];
+        uint8_t temp_buffer[1024];
 
         // 错误计数器
         size_t crc_errors = 0;

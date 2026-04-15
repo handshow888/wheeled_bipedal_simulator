@@ -13,6 +13,7 @@ namespace wheeled_bipedal_hardware
 
         rec_pkg_header_map_[0x5A] = sizeof(ReceivePackage);
         rec_pkg_header_map_[0x5B] = sizeof(ReceivePackage2);
+        rec_pkg_header_map_[0x5C] = sizeof(ReceivePackage3);
 
         imuGyroOffset[0] = std::stod(info_.hardware_parameters["imuGyroOffset_X"]);
         imuGyroOffset[1] = std::stod(info_.hardware_parameters["imuGyroOffset_Y"]);
@@ -58,7 +59,7 @@ namespace wheeled_bipedal_hardware
         hw_state_motors = latest_motors_state_;
         hw_state_motors[1].pos *= -1;
         hw_state_motors[3].pos *= -1;
-        RCLCPP_INFO(rclcpp::get_logger("WBHardwareInterface"),
+        RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
                     "%.5f %.5f %.5f %.5f %.5f %.5f",
                     hw_state_motors[0].pos, hw_state_motors[1].pos, hw_state_motors[2].pos, hw_state_motors[3].pos,
                     hw_state_motors[4].vel, hw_state_motors[5].vel);
@@ -70,16 +71,20 @@ namespace wheeled_bipedal_hardware
         (void)time;
         (void)period;
         SendPackage packet2send;
-        packet2send.motors_effort[0] = hw_command_motors[0].tor;
-        packet2send.motors_effort[1] = hw_command_motors[1].tor;
-        packet2send.motors_effort[2] = hw_command_motors[2].tor;
-        packet2send.motors_effort[3] = hw_command_motors[3].tor;
-        packet2send.motors_effort[4] = hw_command_motors[4].tor;
-        packet2send.motors_effort[5] = hw_command_motors[5].tor;
+        packet2send.motors_effort[0] = static_cast<float>(hw_command_motors[0].tor);
+        packet2send.motors_effort[1] = static_cast<float>(-hw_command_motors[1].tor);
+        packet2send.motors_effort[2] = static_cast<float>(hw_command_motors[2].tor);
+        packet2send.motors_effort[3] = static_cast<float>(-hw_command_motors[3].tor);
+        packet2send.motors_effort[4] = static_cast<float>(hw_command_motors[4].tor);
+        packet2send.motors_effort[5] = static_cast<float>(hw_command_motors[5].tor);
         uint8_t buffer[sizeof(SendPackage)];
         std::memcpy(buffer, &packet2send, sizeof(SendPackage));
         Append_CRC16_Check_Sum(buffer, sizeof(SendPackage));
         serial_core_->send_raw(buffer, sizeof(SendPackage));
+        // RCLCPP_INFO(rclcpp::get_logger("WBHI write"),
+        //             "%.5f %.5f %.5f %.5f %.5f %.5f",
+        //             packet2send.motors_effort[0], packet2send.motors_effort[1], packet2send.motors_effort[2], packet2send.motors_effort[3],
+        //             packet2send.motors_effort[4], packet2send.motors_effort[5]);
         return hardware_interface::return_type::OK;
     }
 
@@ -153,21 +158,30 @@ namespace wheeled_bipedal_hardware
         case 0x5A:
         {
             auto pkg = reinterpret_cast<const ReceivePackage *>(data);
-            latest_imu_state_.ax = pkg->ax * 9.81;
-            latest_imu_state_.ay = pkg->ay * 9.81;
-            latest_imu_state_.az = pkg->az * 9.81;
-            latest_imu_state_.gx = (pkg->gx - imuGyroOffset[0]) * (M_PI / 180.0);
-            latest_imu_state_.gy = (pkg->gy - imuGyroOffset[1]) * (M_PI / 180.0);
-            latest_imu_state_.gz = (pkg->gz - imuGyroOffset[2]) * (M_PI / 180.0);
+            latest_imu_state_.ax = static_cast<double>(pkg->ax) * 9.81;
+            latest_imu_state_.ay = static_cast<double>(pkg->ay) * 9.81;
+            latest_imu_state_.az = static_cast<double>(pkg->az) * 9.81;
+            latest_imu_state_.gx = (static_cast<double>(pkg->gx) - imuGyroOffset[0]) * (M_PI / 180.0);
+            latest_imu_state_.gy = (static_cast<double>(pkg->gy) - imuGyroOffset[1]) * (M_PI / 180.0);
+            latest_imu_state_.gz = (static_cast<double>(pkg->gz) - imuGyroOffset[2]) * (M_PI / 180.0);
             break;
         }
         case 0x5B:
         {
             auto pkg = reinterpret_cast<const ReceivePackage2 *>(data);
             int index = static_cast<int>(pkg->motorID) - 1;
-            latest_motors_state_.at(index).pos = pkg->motorPos;
-            latest_motors_state_.at(index).vel = pkg->motorVel;
-            latest_motors_state_.at(index).tor = pkg->motorTor;
+            latest_motors_state_.at(index).pos = static_cast<double>(pkg->motorPos);
+            latest_motors_state_.at(index).vel = static_cast<double>(pkg->motorVel);
+            latest_motors_state_.at(index).tor = static_cast<double>(pkg->motorTor);
+            break;
+        }
+        case 0x5C:
+        {
+            // auto pkg = reinterpret_cast<const ReceivePackage3 *>(data);
+            // RCLCPP_INFO(rclcpp::get_logger("WBHI test"),
+            //             "%.5f %.5f %.5f %.5f %.5f %.5f",
+            //             pkg->motors_effort[0], pkg->motors_effort[1], pkg->motors_effort[2], pkg->motors_effort[3],
+            //             pkg->motors_effort[4], pkg->motors_effort[5]);
             break;
         }
         default:
