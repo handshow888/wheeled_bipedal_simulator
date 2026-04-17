@@ -35,3 +35,11 @@ void QuaternionToEularAngle(double *q, double *Yaw, double *Pitch, double *Roll)
     *Pitch = atan2(2.0 * (q[0] * q[1] + q[2] * q[3]), 2.0 * (q[0] * q[0] + q[3] * q[3]) - 1.0) * rad2deg;
     *Roll = asinf(2.0 * (q[0] * q[2] - q[1] * q[3])) * rad2deg;
 }
+
+void wrapToPi(double &radian)
+{
+    if (radian > M_PI)
+        radian -= M_PI * 2.0;
+    else if (radian < -M_PI)
+        radian += M_PI * 2.0;
+}

@@ -10,8 +10,9 @@
 double lowPassFilter(double currentValue, double previousValue, double alpha);
 void EularAngleToQuaternion(double Yaw, double Pitch, double Roll, double *q);
 void QuaternionToEularAngle(double *q, double *Yaw, double *Pitch, double *Roll);
+void wrapToPi(double &radian);
 
-template<int Rows, int Cols>
+template <int Rows, int Cols>
 void matrixToRowMajorFixedArray(const Eigen::Matrix<double, Rows, Cols> &mat, double *output)
 {
     // 将 output 映射为固定尺寸行优先矩阵，直接赋值

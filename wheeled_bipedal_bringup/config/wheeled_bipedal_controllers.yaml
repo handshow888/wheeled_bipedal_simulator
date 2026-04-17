@@ -12,8 +12,8 @@ controller_manager:
     # diff_drive_controller:
     #   type: diff_drive_controller/DiffDriveController
 
-    effort_controller:
-      type: effort_controllers/JointGroupEffortController
+    # effort_controller:
+    #   type: effort_controllers/JointGroupEffortController
 
     wheeled_bipedal_controller:
       type: wheeled_bipedal_controller/WheeledBipedalController
@@ -79,7 +79,7 @@ wheeled_bipedal_controller:
       leg_length: 0.20 # 初始腿长
     # 右腿
     right:
-      same_with_left: true # true表示与左腿采用相同参数
+      same_with_left: false # true表示与左腿采用相同参数
       leg_length_P: 0.0
       leg_length_I: 0.0
       leg_length_D: 0.0

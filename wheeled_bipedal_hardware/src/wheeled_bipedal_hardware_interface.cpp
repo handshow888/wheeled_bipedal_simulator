@@ -59,10 +59,10 @@ namespace wheeled_bipedal_hardware
         hw_state_motors = latest_motors_state_;
         hw_state_motors[1].pos *= -1;
         hw_state_motors[3].pos *= -1;
-        RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
-                    "%.5f %.5f %.5f %.5f %.5f %.5f",
-                    hw_state_motors[0].pos, hw_state_motors[1].pos, hw_state_motors[2].pos, hw_state_motors[3].pos,
-                    hw_state_motors[4].vel, hw_state_motors[5].vel);
+        // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
+        //             "%.5f %.5f %.5f %.5f %.5f %.5f",
+        //             hw_state_motors[0].pos, hw_state_motors[1].pos, hw_state_motors[2].pos, hw_state_motors[3].pos,
+        //             hw_state_motors[4].vel, hw_state_motors[5].vel);
         return hardware_interface::return_type::OK;
     }
 
@@ -81,10 +81,10 @@ namespace wheeled_bipedal_hardware
         std::memcpy(buffer, &packet2send, sizeof(SendPackage));
         Append_CRC16_Check_Sum(buffer, sizeof(SendPackage));
         serial_core_->send_raw(buffer, sizeof(SendPackage));
-        // RCLCPP_INFO(rclcpp::get_logger("WBHI write"),
-        //             "%.5f %.5f %.5f %.5f %.5f %.5f",
-        //             packet2send.motors_effort[0], packet2send.motors_effort[1], packet2send.motors_effort[2], packet2send.motors_effort[3],
-        //             packet2send.motors_effort[4], packet2send.motors_effort[5]);
+        RCLCPP_INFO(rclcpp::get_logger("WBHI write"),
+                    "%.5f %.5f %.5f %.5f %.5f %.5f",
+                    packet2send.motors_effort[0], -packet2send.motors_effort[1], packet2send.motors_effort[2], -packet2send.motors_effort[3],
+                    packet2send.motors_effort[4], packet2send.motors_effort[5]);
         return hardware_interface::return_type::OK;
     }
 

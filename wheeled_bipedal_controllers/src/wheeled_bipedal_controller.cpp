@@ -216,7 +216,12 @@ namespace wheeled_bipedal_controller
         INS_Task(imuStates_.lin_acc_x, imuStates_.lin_acc_y, imuStates_.lin_acc_z,
                  imuStates_.ang_vel_x, imuStates_.ang_vel_y, imuStates_.ang_vel_z,
                  dt);
-        RCLCPP_INFO(get_node()->get_logger(), "R:%.3f P:%.3f Y:%.3f", INS.Roll, INS.Pitch, INS.Yaw);
+        // RCLCPP_INFO(get_node()->get_logger(), "R:%.3f P:%.3f Y:%.3f dt:%.6f", INS.Roll, INS.Pitch, INS.Yaw, dt);
+        // RCLCPP_INFO(get_node()->get_logger(), "tf:LF:%.2f LR:%.2f RF:%.2f RR:%.2f",
+        //             lfMotorStates_.position * rad2deg,
+        //             lrMotorStates_.position * rad2deg,
+        //             rfMotorStates_.position * rad2deg,
+        //             rrMotorStates_.position * rad2deg);
 
         if (time.seconds() - initTime <= 2.0)
             return controller_interface::return_type::OK;
@@ -336,8 +341,8 @@ namespace wheeled_bipedal_controller
             leftFeedforward_F = legLengthFeedforward_ / cos(leftTheta);
             rightFeedforward_F = legLengthFeedforward_ / cos(rightTheta);
         }
-        // RCLCPP_INFO(get_node()->get_logger(), "L:PID_F:%.3f FF_F:%.3f  R:PID_F:%.3f FF_F:%.3f L:Target_L:%.3f L:%.3f",
-        //             leftVMC_F, leftFeedforward_F, rightVMC_F, rightFeedforward_F, leftLegLengthCpstTarget, leftFKResult.L0);
+        RCLCPP_INFO(get_node()->get_logger(), "L:PID_F:%.3f FF_F:%.3f  R:PID_F:%.3f FF_F:%.3f L:Target_L:%.3f L:%.3f",
+                    leftVMC_F, leftFeedforward_F, rightVMC_F, rightFeedforward_F, leftLegLengthCpstTarget, leftFKResult.L0);
         leftVMC_F += leftFeedforward_F;
         rightVMC_F += rightFeedforward_F;
 
@@ -559,6 +564,11 @@ namespace wheeled_bipedal_controller
         // rwMotorStates_.position = state_interfaces_[rw_motor_state_indices_[0]].get_value();
         rwMotorStates_.velocity = state_interfaces_[rw_motor_state_indices_[1]].get_value();
         // rwMotorStates_.effort = state_interfaces_[rw_motor_state_indices_[2]].get_value();
+
+        wrapToPi(lfMotorStates_.position);
+        wrapToPi(lrMotorStates_.position);
+        wrapToPi(rfMotorStates_.position);
+        wrapToPi(rrMotorStates_.position);
 
         // --- 2. 读取 IMU 数据 ---
         imuStates_.ang_vel_x = state_interfaces_[imu_state_indices_[0]].get_value();
