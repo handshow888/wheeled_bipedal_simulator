@@ -14,6 +14,10 @@
             <param name="imuGyroOffset_Z">-1.538492</param>
         </hardware>
 
+        <joint name="joint_motor">
+            <state_interface name="state" />
+        </joint>
+
         <joint name="left_wheel_joint">
             <!-- <command_interface name="position" /> -->
             <!-- <command_interface name="velocity" /> -->

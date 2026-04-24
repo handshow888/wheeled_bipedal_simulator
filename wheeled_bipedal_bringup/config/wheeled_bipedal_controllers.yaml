@@ -12,8 +12,8 @@ controller_manager:
     # diff_drive_controller:
     #   type: diff_drive_controller/DiffDriveController
 
-    # effort_controller:
-    #   type: effort_controllers/JointGroupEffortController
+    effort_controller:
+      type: effort_controllers/JointGroupEffortController
 
     # wheeled_bipedal_controller:
     #   type: wheeled_bipedal_controller/WheeledBipedalController
@@ -23,15 +23,15 @@ imu_sensor_broadcaster:
     sensor_name: "imu_sensor"
     frame_id: "imu_link"
 
-# effort_controller:
-#   ros__parameters:
-#     joints:
-#       - RR_hip_joint
-#       - LR_hip_joint
-#       - RF_hip_joint
-#       - LF_hip_joint
-#       - left_wheel_joint
-#       - right_wheel_joint
+effort_controller:
+  ros__parameters:
+    joints:
+      - RR_hip_joint
+      - LR_hip_joint
+      - RF_hip_joint
+      - LF_hip_joint
+      - left_wheel_joint
+      - right_wheel_joint
 
 wheeled_bipedal_controller:
   ros__parameters:

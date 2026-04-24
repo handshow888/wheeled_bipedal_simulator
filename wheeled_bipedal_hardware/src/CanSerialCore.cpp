@@ -58,6 +58,13 @@ void CanSerial::init()
 
     // 分配到Boost流
     stream_.assign(sock_);
+
+    // 增加发送缓冲区
+    int sndbuf_size = 1024 * 1024; // 1 MB
+    setsockopt(sock_, SOL_SOCKET, SO_SNDBUF, &sndbuf_size, sizeof(sndbuf_size));
+
+    // 设置非阻塞模式
+    stream_.non_blocking(true); // boost::asio 非阻塞模式
 }
 
 void CanSerial::async_read()
@@ -93,7 +100,31 @@ void CanSerial::start_io_service()
 
 void CanSerial::send_frame(const can_frame &frame)
 {
-    stream_.write_some(boost::asio::buffer(&frame, sizeof(frame)));
+    boost::system::error_code ec;
+    size_t len = stream_.write_some(boost::asio::buffer(&frame, sizeof(frame)), ec);
+    if (ec)
+    {
+        if (ec == boost::asio::error::would_block ||
+            ec == boost::asio::error::try_again ||
+            ec.value() == ENOBUFS)
+        {
+            // 缓冲区满，丢弃该帧
+            static int drop_count = 0;
+            if (++drop_count % 100 == 0)
+            {
+                std::cerr << "[CanSerial] CAN send buffer full, dropped "
+                          << drop_count << " frames so far" << std::endl;
+            }
+        }
+        else
+        {
+            std::cerr << "[CanSerial] Send error: " << ec.message() << std::endl;
+        }
+    }
+    else if (len != sizeof(can_frame))
+    {
+        std::cerr << "[CanSerial] Incomplete send" << std::endl;
+    }
 }
 
 void CanSerial::set_frame_callback(FrameCallback callback)

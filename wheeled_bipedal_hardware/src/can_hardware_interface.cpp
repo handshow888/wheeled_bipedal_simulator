@@ -44,6 +44,11 @@ namespace can_hardware
     hardware_interface::CallbackReturn CanHardwareInterface::on_deactivate(const rclcpp_lifecycle::State &pre)
     {
         (void)pre;
+        MIT stopCmd;
+        for (int i = 0; i < 4; ++i)
+        {
+            send_can_frame(i + 1, stopCmd);
+        }
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 
@@ -58,6 +63,13 @@ namespace can_hardware
             hw_state_motors_[i].pos = motorStates_[i].pos;
             hw_state_motors_[i].vel = motorStates_[i].vel;
             hw_state_motors_[i].tor = motorStates_[i].tor;
+            // 电机 2 (i=1) 和电机 4 (i=3) 需要反转方向
+            if (i == 1 || i == 3)
+            {
+                hw_state_motors_.at(i).pos = -hw_state_motors_.at(i).pos;
+                hw_state_motors_.at(i).vel = -hw_state_motors_.at(i).vel;
+                hw_state_motors_.at(i).tor = -hw_state_motors_.at(i).tor;
+            }
         }
         // RCLCPP_INFO(rclcpp::get_logger("CAN read"), "pos:1:%.2f 2:%.2f 3:%.2f 4:%.2f",
         //             hw_state_motors_[0].pos, hw_state_motors_[1].pos, hw_state_motors_[2].pos, hw_state_motors_[3].pos);
@@ -68,6 +80,24 @@ namespace can_hardware
     {
         (void)time;
         (void)period;
+        for (int i = 0; i < 4; ++i)
+        {
+            MIT cmd = hw_command_motors_[i]; // 拷贝一份
+            if (i == 1 || i == 3)            // 电机 2 和电机 4 反向
+            {
+                cmd.pos = -cmd.pos;
+                cmd.vel = -cmd.vel;
+                cmd.tor = -cmd.tor;
+                cmd.kp = -cmd.kp;
+                cmd.kd = -cmd.kd;
+            }
+            send_can_frame(i + 1, cmd);
+            // RCLCPP_INFO(rclcpp::get_logger("CAN write"), "%d:pos:%.3f vel:%.3f tor:%.3f kp:%.3f kd:%.3f",
+            //             i,
+            //             cmd.pos, cmd.vel, cmd.tor, cmd.kp, cmd.kd);
+        }
+        // RCLCPP_INFO(rclcpp::get_logger("CAN write"), "tor: 1:%.3f 2:%.3f 3:%.3f 4:%.3f",
+        //             hw_command_motors_[0].tor, -hw_command_motors_[1].tor, hw_command_motors_[2].tor, -hw_command_motors_[3].tor);
         return hardware_interface::return_type::OK;
     }
 
@@ -143,6 +173,37 @@ namespace can_hardware
         default:
             break;
         }
+    }
+
+    void CanHardwareInterface::send_can_frame(int motorId, MIT &cmd)
+    {
+        can_frame frame_to_send;
+        frame_to_send.can_id = 0x200 + motorId;
+        frame_to_send.can_dlc = 8;
+        LIMIT_MIN_MAX(cmd.pos, cmd.posMin, cmd.posMax);
+        LIMIT_MIN_MAX(cmd.vel, cmd.velMin, cmd.velMax);
+        LIMIT_MIN_MAX(cmd.kp, cmd.kpMin, cmd.kpMax);
+        LIMIT_MIN_MAX(cmd.kd, cmd.kdMin, cmd.kdMax);
+        LIMIT_MIN_MAX(cmd.tor, cmd.torMin, cmd.torMax);
+
+        uint16_t posInt = float_to_uint((float)cmd.pos, cmd.posMin, cmd.posMax, 16);
+        uint16_t velInt = float_to_uint((float)cmd.vel, cmd.velMin, cmd.velMax, 12);
+        uint16_t kpInt = float_to_uint((float)cmd.kp, cmd.kpMin, cmd.kpMax, 12);
+        uint16_t kdInt = float_to_uint((float)cmd.kd, cmd.kdMin, cmd.kdMax, 12);
+        uint16_t torInt = float_to_uint((float)cmd.tor, cmd.torMin, cmd.torMax, 12);
+
+        // 填充数据
+        frame_to_send.data[0] = posInt >> 8;
+        frame_to_send.data[1] = posInt & 0xFF;
+        frame_to_send.data[2] = velInt >> 4;
+        frame_to_send.data[3] = ((velInt & 0xF) << 4) | (kpInt >> 8);
+        frame_to_send.data[4] = kpInt & 0xFF;
+        frame_to_send.data[5] = kdInt >> 4;
+        frame_to_send.data[6] = ((kdInt & 0xF) << 4) | (torInt >> 8);
+        frame_to_send.data[7] = torInt & 0xFF;
+
+        // 发送数据
+        can_core_->send_frame(frame_to_send);
     }
 
     float uint_to_float(int x_int, float x_min, float x_max, int bits)

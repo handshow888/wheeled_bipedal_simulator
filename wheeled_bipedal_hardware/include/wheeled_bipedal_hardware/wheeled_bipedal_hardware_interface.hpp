@@ -63,21 +63,21 @@ namespace wheeled_bipedal_hardware
         // 接收线程最新数据缓存
         imuState latest_imu_state_;
         double imuGyroOffset[3];
-        std::array<motorState, 2> latest_motors_state_;
-        bool jointMotorSwitch = false;  // 关节电机使能标志
+        std::array<motorState, 2> latest_motors_state_{};
+        double jointMotorState = 0.0;  // 关节电机: 0失能 非0使能
 
         // 状态和命令变量
         imuState hw_state_imu_;
         double oriXYZ_ = 0.0;
         double oriW_ = 1.0;
+        double hw_state_joint_motor_ = 0.0;
         // motorState hw_state_rr_motor_; // 右后关节电机
         // motorState hw_state_lr_motor_; // 左后关节电机
         // motorState hw_state_rf_motor_; // 右前关节电机
         // motorState hw_state_lf_motor_; // 左前关节电机
         // motorState hw_state_lw_motor_; // 左轮
         // motorState hw_state_rw_motor_; // 右轮
-        std::array<motorState, 2> hw_state_motors_; // 按照上述顺序
-
-        std::array<motorCommand, 2> hw_command_motors_;
+        std::array<motorState, 2> hw_state_motors_{}; // 按照上述顺序
+        std::array<motorCommand, 2> hw_command_motors_{};
     };
 } // namespace wheeled_bipedal_hardware

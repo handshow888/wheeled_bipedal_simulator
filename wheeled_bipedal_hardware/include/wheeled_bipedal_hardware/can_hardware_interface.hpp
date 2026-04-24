@@ -4,6 +4,8 @@
 #include "hardware_interface/system_interface.hpp"
 #include "CanSerialCore.hpp"
 
+#define LIMIT_MIN_MAX(x, min, max) (x) = (((x) <= (min)) ? (min) : (((x) >= (max)) ? (max) : (x)))
+
 namespace can_hardware
 {
     float uint_to_float(int x_int, float x_min, float x_max, int bits);
@@ -13,9 +15,9 @@ namespace can_hardware
     {
         double pos = 0.0f;
         double vel = 0.0f;
-        float kp = 0.0f;
-        float kd = 0.0f;
         double tor = 0.0f;
+        double kp = 0.0f;
+        double kd = 0.0f;
         float posMin = -12.56f;
         float posMax = 12.56f;
         float velMin = -45.0f;
@@ -48,16 +50,17 @@ namespace can_hardware
         std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
         void handle_can_frame(const can_frame &frame);
+        void send_can_frame(int motorId, MIT &cmd);
 
     private:
         std::unique_ptr<CanSerial> can_core_;
         std::mutex state_mutex_;
 
-        std::array<MIT, 4> motorStates_;
+        std::array<MIT, 4> motorStates_{};
 
         // 状态和命令变量
-        std::array<MIT, 4> hw_state_motors_;
-        std::array<MIT, 2> hw_command_motors_;
+        std::array<MIT, 4> hw_state_motors_{};
+        std::array<MIT, 4> hw_command_motors_{};
     };
 
 } // namespace can_hardware

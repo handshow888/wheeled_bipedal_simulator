@@ -118,7 +118,7 @@ def generate_launch_description():
         joint_state_broadcaster_spawner,
         imu_sensor_broadcaster_spawner,
         # diff_drive_controller_spawner,
-        # effort_controller_spawner,
+        effort_controller_spawner,
         # wheeled_bipedal_controller_spawner,
         rviz_node,
     ])

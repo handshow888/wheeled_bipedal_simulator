@@ -58,8 +58,10 @@ namespace wheeled_bipedal_hardware
         (void)period;
         std::lock_guard<std::mutex> lock(state_mutex_);
         hw_state_imu_ = latest_imu_state_;
-        hw_state_motors_ = latest_motors_state_;
-        // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),"read"); 
+        hw_state_motors_[0].vel = latest_motors_state_[0].vel;
+        hw_state_motors_[1].vel = latest_motors_state_[1].vel;
+        hw_state_joint_motor_ = jointMotorState;
+        // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),"read");
         // hw_state_motors_[1].pos *= -1;
         // hw_state_motors_[3].pos *= -1;
         // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
@@ -112,6 +114,8 @@ namespace wheeled_bipedal_hardware
         state_interfaces.emplace_back(hardware_interface::StateInterface("left_wheel_joint", "velocity", &hw_state_motors_[0].vel));
         state_interfaces.emplace_back(hardware_interface::StateInterface("right_wheel_joint", "position", &hw_state_motors_[1].pos));
         state_interfaces.emplace_back(hardware_interface::StateInterface("right_wheel_joint", "velocity", &hw_state_motors_[1].vel));
+
+        state_interfaces.emplace_back(hardware_interface::StateInterface("joint_motor", "state", &hw_state_joint_motor_));
         return state_interfaces;
     }
 
@@ -158,11 +162,8 @@ namespace wheeled_bipedal_hardware
         }
         case 0x5C:
         {
-            // auto pkg = reinterpret_cast<const ReceivePackage3 *>(data);
-            // RCLCPP_INFO(rclcpp::get_logger("WBHI test"),
-            //             "%.5f %.5f %.5f %.5f %.5f %.5f",
-            //             pkg->motors_effort[0], pkg->motors_effort[1], pkg->motors_effort[2], pkg->motors_effort[3],
-            //             pkg->motors_effort[4], pkg->motors_effort[5]);
+            auto pkg = reinterpret_cast<const ReceivePackage3 *>(data);
+            jointMotorState = static_cast<double>(pkg->jointMotorState);
             break;
         }
         default:
