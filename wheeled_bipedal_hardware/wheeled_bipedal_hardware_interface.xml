@@ -6,4 +6,12 @@
       Custom hardware interface for wheeled bipedal robot.
     </description>
   </class>
+
+  <class name="can_hardware/CanHardwareInterface"
+         type="can_hardware::CanHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      Custom hardware interface for wheeled bipedal robot.
+    </description>
+  </class>
 </library>

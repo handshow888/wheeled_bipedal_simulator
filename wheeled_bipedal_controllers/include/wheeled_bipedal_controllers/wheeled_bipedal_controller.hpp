@@ -36,6 +36,13 @@ namespace wheeled_bipedal_controller
         double lin_acc_z;
     };
 
+    enum class commandType : u_int8_t
+    {
+        position = 0,
+        velocity = 1,
+        effort = 2
+    };
+
     class WheeledBipedalController : public controller_interface::ControllerInterface
     {
     public:
@@ -81,7 +88,9 @@ namespace wheeled_bipedal_controller
         // ros2_control 参数
         std::vector<std::string> joint_names_, state_interface_names_;
         std::string command_interface_name_, imu_name_;
-        std::vector<double> joints_bias_values_ = {0.0, 0.0, 0.0, 0.0};                                             // 关节电机实际角度与tf角度偏差（rad）
+        std::vector<double> joints_bias_values_ = {0.0, 0.0, 0.0, 0.0}; // 关节电机实际角度与tf角度偏差（rad）
+        double joint_command_limit_ = 10.0;
+        commandType joint_control_type = commandType::effort;
         motorStates lfMotorStates_, lrMotorStates_, rfMotorStates_, rrMotorStates_, lwMotorStates_, rwMotorStates_; // 存储各电机状态值
         imuStates imuStates_;
         // 用于保存 motor 各个状态接口的索引

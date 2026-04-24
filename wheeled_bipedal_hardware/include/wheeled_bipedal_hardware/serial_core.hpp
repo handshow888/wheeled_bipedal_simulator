@@ -212,6 +212,10 @@ public:
             // std::this_thread::sleep_for(std::chrono::microseconds(1));
         }
     }
+    void stopRunning()
+    {
+        this->running_ = false;
+    }
 };
 
 speed_t baudRateToSpeed(int baud_rate)

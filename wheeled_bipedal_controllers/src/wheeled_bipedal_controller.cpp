@@ -12,6 +12,7 @@ namespace wheeled_bipedal_controller
     {
         joint_names_ = auto_declare<std::vector<std::string>>("joints", {});
         joints_bias_values_ = auto_declare<std::vector<double>>("joints_bias_values", {});
+        joint_command_limit_ = auto_declare<double>("joint_command_limit", 5.0);
         command_interface_name_ = auto_declare<std::string>("command_interface_type", "effort");
         state_interface_names_ = auto_declare<std::vector<std::string>>("state_interface_type", {"position", "velocity"});
         // state_interface_names_ = auto_declare<std::vector<std::string>>("state_interface_type", {"position", "velocity", "effort"});
@@ -81,6 +82,16 @@ namespace wheeled_bipedal_controller
             RCLCPP_ERROR(get_node()->get_logger(), "expected correct wheel_separation, but get value: %.2f", wheelSeparation);
             return CallbackReturn::ERROR;
         }
+        if (command_interface_name_ == "position")
+            joint_control_type = commandType::position;
+        else if (command_interface_name_ == "effort")
+            joint_control_type = commandType::effort;
+        else
+            RCLCPP_ERROR(get_node()->get_logger(), "expected correct command_interface_type, but get value: %s", command_interface_name_.c_str());
+        return CallbackReturn::ERROR;
+
+        RCLCPP_INFO(get_node()->get_logger(), "command_interface_name_: %s", command_interface_name_.c_str());
+        INS_Init();
 
         return CallbackReturn::SUCCESS;
     }
@@ -413,12 +424,21 @@ namespace wheeled_bipedal_controller
         rightF_NLast = rightF_N;
         rightDDz_wLast = rightDDz_w;
 
+        leftVMC_T2 = clamp(leftVMC_T2, -joint_command_limit_, joint_command_limit_);
+        leftVMC_T1 = clamp(leftVMC_T1, -joint_command_limit_, joint_command_limit_);
+        rightVMC_T2 = clamp(rightVMC_T2, -joint_command_limit_, joint_command_limit_);
+        rightVMC_T1 = clamp(rightVMC_T1, -joint_command_limit_, joint_command_limit_);
+
         std_msgs::msg::Float64MultiArray testMsg;
-        testMsg.data.push_back(INS.MotionAccel_n[2]);
-        testMsg.data.push_back(leftF_N);
-        testMsg.data.push_back(rightF_N);
-        testMsg.data.push_back(leftDDz_w);
-        testMsg.data.push_back(rightDDz_w);
+        // testMsg.data.push_back(INS.MotionAccel_n[2]);
+        // testMsg.data.push_back(leftF_N);
+        // testMsg.data.push_back(rightF_N);
+        // testMsg.data.push_back(leftDDz_w);
+        // testMsg.data.push_back(rightDDz_w);
+        testMsg.data.push_back(leftVMC_T2);
+        testMsg.data.push_back(leftVMC_T1);
+        testMsg.data.push_back(rightVMC_T2);
+        testMsg.data.push_back(rightVMC_T1);
         testInfoPub_->publish(testMsg);
 
         command_interfaces_[0].set_value(leftVMC_T2);

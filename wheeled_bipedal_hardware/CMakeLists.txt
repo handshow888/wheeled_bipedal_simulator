@@ -22,6 +22,8 @@ include_directories(include)
 
 add_library(${PROJECT_NAME} SHARED
   src/wheeled_bipedal_hardware_interface.cpp
+  src/can_hardware_interface.cpp
+  src/CanSerialCore.cpp
 )
 
 ament_target_dependencies(${PROJECT_NAME}

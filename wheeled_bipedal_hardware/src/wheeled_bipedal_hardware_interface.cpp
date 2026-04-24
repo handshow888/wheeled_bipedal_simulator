@@ -47,6 +47,8 @@ namespace wheeled_bipedal_hardware
         std::memcpy(buffer, &zero_packet, sizeof(SendPackage));
         Append_CRC16_Check_Sum(buffer, sizeof(SendPackage));
         serial_core_->send_raw(buffer, sizeof(SendPackage));
+        serial_core_->stopRunning();
+        serial_core_.reset(); // 完全释放串口资源
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 
@@ -56,13 +58,17 @@ namespace wheeled_bipedal_hardware
         (void)period;
         std::lock_guard<std::mutex> lock(state_mutex_);
         hw_state_imu_ = latest_imu_state_;
-        hw_state_motors = latest_motors_state_;
-        hw_state_motors[1].pos *= -1;
-        hw_state_motors[3].pos *= -1;
+        hw_state_motors_ = latest_motors_state_;
+        // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),"read"); 
+        // hw_state_motors_[1].pos *= -1;
+        // hw_state_motors_[3].pos *= -1;
         // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
         //             "%.5f %.5f %.5f %.5f %.5f %.5f",
-        //             hw_state_motors[0].pos, hw_state_motors[1].pos, hw_state_motors[2].pos, hw_state_motors[3].pos,
-        //             hw_state_motors[4].vel, hw_state_motors[5].vel);
+        //             hw_state_motors_[0].pos, hw_state_motors_[1].pos, hw_state_motors_[2].pos, hw_state_motors_[3].pos,
+        //             hw_state_motors_[4].vel, hw_state_motors_[5].vel);
+        // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
+        //             "ax:%.3f \tay:%.3f \taz:%.3f \tgx:%.3f \tgy:%.3f \tgz:%.3f\n",
+        //             hw_state_imu_.ax, hw_state_imu_.ay, hw_state_imu_.az, hw_state_imu_.gx, hw_state_imu_.gy, hw_state_imu_.gz);
         return hardware_interface::return_type::OK;
     }
 
@@ -71,20 +77,20 @@ namespace wheeled_bipedal_hardware
         (void)time;
         (void)period;
         SendPackage packet2send;
-        packet2send.motors_effort[0] = static_cast<float>(hw_command_motors[0].tor);
-        packet2send.motors_effort[1] = static_cast<float>(-hw_command_motors[1].tor);
-        packet2send.motors_effort[2] = static_cast<float>(hw_command_motors[2].tor);
-        packet2send.motors_effort[3] = static_cast<float>(-hw_command_motors[3].tor);
-        packet2send.motors_effort[4] = static_cast<float>(hw_command_motors[4].tor);
-        packet2send.motors_effort[5] = static_cast<float>(hw_command_motors[5].tor);
+        // packet2send.motors_effort[0] = static_cast<float>(hw_command_motors_[0].tor);
+        // packet2send.motors_effort[1] = static_cast<float>(-hw_command_motors_[1].tor);
+        // packet2send.motors_effort[2] = static_cast<float>(hw_command_motors_[2].tor);
+        // packet2send.motors_effort[3] = static_cast<float>(-hw_command_motors_[3].tor);
+        packet2send.motors_effort[0] = static_cast<float>(hw_command_motors_[0].tor);
+        packet2send.motors_effort[1] = static_cast<float>(hw_command_motors_[1].tor);
         uint8_t buffer[sizeof(SendPackage)];
         std::memcpy(buffer, &packet2send, sizeof(SendPackage));
         Append_CRC16_Check_Sum(buffer, sizeof(SendPackage));
         serial_core_->send_raw(buffer, sizeof(SendPackage));
-        RCLCPP_INFO(rclcpp::get_logger("WBHI write"),
-                    "%.5f %.5f %.5f %.5f %.5f %.5f",
-                    packet2send.motors_effort[0], -packet2send.motors_effort[1], packet2send.motors_effort[2], -packet2send.motors_effort[3],
-                    packet2send.motors_effort[4], packet2send.motors_effort[5]);
+        // RCLCPP_INFO(rclcpp::get_logger("WBHI write"),
+        //             "%.5f %.5f %.5f %.5f %.5f %.5f",
+        //             packet2send.motors_effort[0], -packet2send.motors_effort[1], packet2send.motors_effort[2], -packet2send.motors_effort[3],
+        //             packet2send.motors_effort[4], packet2send.motors_effort[5]);
         return hardware_interface::return_type::OK;
     }
 
@@ -102,50 +108,18 @@ namespace wheeled_bipedal_hardware
         state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "angular_velocity.y", &hw_state_imu_.gy));
         state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "angular_velocity.z", &hw_state_imu_.gz));
 
-        state_interfaces.emplace_back(hardware_interface::StateInterface("RR_hip_joint", "position", &hw_state_motors[0].pos));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("RR_hip_joint", "velocity", &hw_state_motors[0].vel));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("RR_hip_joint", "effort", &hw_state_motors[0].tor));
-
-        state_interfaces.emplace_back(hardware_interface::StateInterface("LR_hip_joint", "position", &hw_state_motors[1].pos));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("LR_hip_joint", "velocity", &hw_state_motors[1].vel));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("LR_hip_joint", "effort", &hw_state_motors[1].tor));
-
-        state_interfaces.emplace_back(hardware_interface::StateInterface("RF_hip_joint", "position", &hw_state_motors[2].pos));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("RF_hip_joint", "velocity", &hw_state_motors[2].vel));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("RF_hip_joint", "effort", &hw_state_motors[2].tor));
-
-        state_interfaces.emplace_back(hardware_interface::StateInterface("LF_hip_joint", "position", &hw_state_motors[3].pos));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("LF_hip_joint", "velocity", &hw_state_motors[3].vel));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("LF_hip_joint", "effort", &hw_state_motors[3].tor));
-
-        state_interfaces.emplace_back(hardware_interface::StateInterface("left_wheel_joint", "position", &hw_state_motors[4].pos));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("left_wheel_joint", "velocity", &hw_state_motors[4].vel));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("right_wheel_joint", "position", &hw_state_motors[5].pos));
-        state_interfaces.emplace_back(hardware_interface::StateInterface("right_wheel_joint", "velocity", &hw_state_motors[5].vel));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("left_wheel_joint", "position", &hw_state_motors_[0].pos));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("left_wheel_joint", "velocity", &hw_state_motors_[0].vel));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("right_wheel_joint", "position", &hw_state_motors_[1].pos));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("right_wheel_joint", "velocity", &hw_state_motors_[1].vel));
         return state_interfaces;
     }
 
     std::vector<hardware_interface::CommandInterface> WheeledBipedalHardwareInterface::export_command_interfaces()
     {
         std::vector<hardware_interface::CommandInterface> command_interfaces;
-        // command_interfaces.emplace_back(hardware_interface::CommandInterface("RR_hip_joint", "position", &hw_command_motors[0].pos));
-        // command_interfaces.emplace_back(hardware_interface::CommandInterface("RR_hip_joint", "velocity", &hw_command_motors[0].vel));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface("RR_hip_joint", "effort", &hw_command_motors[0].tor));
-
-        // command_interfaces.emplace_back(hardware_interface::CommandInterface("LR_hip_joint", "position", &hw_command_motors[1].pos));
-        // command_interfaces.emplace_back(hardware_interface::CommandInterface("LR_hip_joint", "velocity", &hw_command_motors[1].vel));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface("LR_hip_joint", "effort", &hw_command_motors[1].tor));
-
-        // command_interfaces.emplace_back(hardware_interface::CommandInterface("RF_hip_joint", "position", &hw_command_motors[2].pos));
-        // command_interfaces.emplace_back(hardware_interface::CommandInterface("RF_hip_joint", "velocity", &hw_command_motors[2].vel));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface("RF_hip_joint", "effort", &hw_command_motors[2].tor));
-
-        // command_interfaces.emplace_back(hardware_interface::CommandInterface("LF_hip_joint", "position", &hw_command_motors[3].pos));
-        // command_interfaces.emplace_back(hardware_interface::CommandInterface("LF_hip_joint", "velocity", &hw_command_motors[3].vel));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface("LF_hip_joint", "effort", &hw_command_motors[3].tor));
-
-        command_interfaces.emplace_back(hardware_interface::CommandInterface("left_wheel_joint", "effort", &hw_command_motors[4].tor));
-        command_interfaces.emplace_back(hardware_interface::CommandInterface("right_wheel_joint", "effort", &hw_command_motors[5].tor));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface("left_wheel_joint", "effort", &hw_command_motors_[0].tor));
+        command_interfaces.emplace_back(hardware_interface::CommandInterface("right_wheel_joint", "effort", &hw_command_motors_[1].tor));
         return command_interfaces;
     }
 
@@ -164,15 +138,22 @@ namespace wheeled_bipedal_hardware
             latest_imu_state_.gx = (static_cast<double>(pkg->gx) - imuGyroOffset[0]) * (M_PI / 180.0);
             latest_imu_state_.gy = (static_cast<double>(pkg->gy) - imuGyroOffset[1]) * (M_PI / 180.0);
             latest_imu_state_.gz = (static_cast<double>(pkg->gz) - imuGyroOffset[2]) * (M_PI / 180.0);
+            // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
+            //         "ax:%.3f \tay:%.3f \taz:%.3f \tgx:%.3f \tgy:%.3f \tgz:%.3f\n",
+            //         latest_imu_state_.ax, latest_imu_state_.ay, latest_imu_state_.az,
+            //         latest_imu_state_.gx, latest_imu_state_.gy, latest_imu_state_.gz);
             break;
         }
         case 0x5B:
         {
             auto pkg = reinterpret_cast<const ReceivePackage2 *>(data);
-            int index = static_cast<int>(pkg->motorID) - 1;
-            latest_motors_state_.at(index).pos = static_cast<double>(pkg->motorPos);
-            latest_motors_state_.at(index).vel = static_cast<double>(pkg->motorVel);
-            latest_motors_state_.at(index).tor = static_cast<double>(pkg->motorTor);
+            int index = static_cast<int>(pkg->motorID) - 5;
+            // latest_motors_state_[index].pos = static_cast<double>(pkg->motorPos);
+            latest_motors_state_[index].vel = static_cast<double>(pkg->motorVel);
+            // latest_motors_state_[index].tor = static_cast<double>(pkg->motorTor);
+            // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
+            //             "%.5f %.5f",
+            //             hw_state_motors_[0].vel, hw_state_motors_[1].vel);
             break;
         }
         case 0x5C:
