@@ -6,13 +6,10 @@ namespace wheeled_bipedal_controller
 {
     WheeledBipedalController::WheeledBipedalController() : controller_interface::ControllerInterface()
     {
-        RCLCPP_INFO(get_node()->get_logger(), "WheeledBipedalController::WheeledBipedalController() called!!!!");
     }
 
     controller_interface::CallbackReturn WheeledBipedalController::on_init()
     {
-        fprintf(stderr, ">>> on_init() entered\n");
-        RCLCPP_INFO(get_node()->get_logger(), "WheeledBipedalController::on_init() called!!!!");
         joint_names_ = auto_declare<std::vector<std::string>>("joints", {});
         joints_bias_values_ = auto_declare<std::vector<double>>("joints_bias_values", {});
         joint_command_limit_ = auto_declare<double>("joint_command_limit", 5.0);
