@@ -26,8 +26,8 @@ namespace wheeled_bipedal_hardware
 
     struct motorCommand
     {
-        double pos = 0.0;
-        double vel = 0.0;
+        // double pos = 0.0;
+        // double vel = 0.0;
         double tor = 0.0;
     };
 
@@ -71,13 +71,8 @@ namespace wheeled_bipedal_hardware
         double oriXYZ_ = 0.0;
         double oriW_ = 1.0;
         double hw_state_joint_motor_ = 0.0;
-        // motorState hw_state_rr_motor_; // 右后关节电机
-        // motorState hw_state_lr_motor_; // 左后关节电机
-        // motorState hw_state_rf_motor_; // 右前关节电机
-        // motorState hw_state_lf_motor_; // 左前关节电机
-        // motorState hw_state_lw_motor_; // 左轮
-        // motorState hw_state_rw_motor_; // 右轮
-        std::array<motorState, 2> hw_state_motors_{}; // 按照上述顺序
+
+        std::array<motorState, 2> hw_state_motors_{};
         std::array<motorCommand, 2> hw_command_motors_{};
     };
 } // namespace wheeled_bipedal_hardware

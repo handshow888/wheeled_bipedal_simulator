@@ -61,13 +61,9 @@ namespace wheeled_bipedal_hardware
         hw_state_motors_[0].vel = latest_motors_state_[0].vel;
         hw_state_motors_[1].vel = latest_motors_state_[1].vel;
         hw_state_joint_motor_ = jointMotorState;
-        // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),"read");
-        // hw_state_motors_[1].pos *= -1;
-        // hw_state_motors_[3].pos *= -1;
         // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
-        //             "%.5f %.5f %.5f %.5f %.5f %.5f",
-        //             hw_state_motors_[0].pos, hw_state_motors_[1].pos, hw_state_motors_[2].pos, hw_state_motors_[3].pos,
-        //             hw_state_motors_[4].vel, hw_state_motors_[5].vel);
+        //             "%.5f %.5f",
+        //             hw_state_motors_[0].vel, hw_state_motors_[1].vel);
         // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
         //             "ax:%.3f \tay:%.3f \taz:%.3f \tgx:%.3f \tgy:%.3f \tgz:%.3f\n",
         //             hw_state_imu_.ax, hw_state_imu_.ay, hw_state_imu_.az, hw_state_imu_.gx, hw_state_imu_.gy, hw_state_imu_.gz);
@@ -79,10 +75,6 @@ namespace wheeled_bipedal_hardware
         (void)time;
         (void)period;
         SendPackage packet2send;
-        // packet2send.motors_effort[0] = static_cast<float>(hw_command_motors_[0].tor);
-        // packet2send.motors_effort[1] = static_cast<float>(-hw_command_motors_[1].tor);
-        // packet2send.motors_effort[2] = static_cast<float>(hw_command_motors_[2].tor);
-        // packet2send.motors_effort[3] = static_cast<float>(-hw_command_motors_[3].tor);
         packet2send.motors_effort[0] = static_cast<float>(hw_command_motors_[0].tor);
         packet2send.motors_effort[1] = static_cast<float>(hw_command_motors_[1].tor);
         uint8_t buffer[sizeof(SendPackage)];
@@ -90,9 +82,10 @@ namespace wheeled_bipedal_hardware
         Append_CRC16_Check_Sum(buffer, sizeof(SendPackage));
         serial_core_->send_raw(buffer, sizeof(SendPackage));
         // RCLCPP_INFO(rclcpp::get_logger("WBHI write"),
-        //             "%.5f %.5f %.5f %.5f %.5f %.5f",
-        //             packet2send.motors_effort[0], -packet2send.motors_effort[1], packet2send.motors_effort[2], -packet2send.motors_effort[3],
-        //             packet2send.motors_effort[4], packet2send.motors_effort[5]);
+        //             "%.5f %.5f",
+        //             packet2send.motors_effort[0], packet2send.motors_effort[1]);
+        // RCLCPP_INFO(rclcpp::get_logger("WBHI write"), "%x %x %x %x %x %x %x %x %x %x %x",
+        //             buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7], buffer[8], buffer[9], buffer[10]);
         return hardware_interface::return_type::OK;
     }
 
