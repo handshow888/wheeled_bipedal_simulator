@@ -50,7 +50,7 @@ namespace can_hardware
         std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
         void handle_can_frame(const can_frame &frame);
-        void send_can_frame(int motorId, MIT &cmd);
+        void send_can_frame(int motorId, MIT &cmd, bool sync = false);
 
     private:
         std::unique_ptr<CanSerial> can_core_;

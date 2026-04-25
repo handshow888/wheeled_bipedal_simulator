@@ -41,9 +41,9 @@ public:
     void init();
     void async_read();
     void start_io_service();
-    void send_frame(const can_frame& frame);
     void set_frame_callback(FrameCallback callback);
-    std::thread io_thread_;
+    void send_frame(const can_frame& frame);
+    void send_frame_sync(const can_frame &frame);
 
 private:
     void handle_received(const boost::system::error_code& ec, size_t bytes);
@@ -54,8 +54,17 @@ private:
     boost::asio::posix::basic_stream_descriptor<> stream_;
     can_frame recv_frame_;
     FrameCallback frame_callback_;
+    std::thread io_thread_;
 
+    // 发送队列
+    std::queue<can_frame> tx_queue_;
+    std::mutex tx_mutex_;
+    std::condition_variable tx_cv_;
+    bool running_ = true;
     
+    // 发送线程
+    std::thread tx_thread_;
+    void tx_loop();  // 发送循环
 };
 
 #endif

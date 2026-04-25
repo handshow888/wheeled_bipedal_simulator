@@ -47,8 +47,14 @@ namespace can_hardware
         MIT stopCmd;
         for (int i = 0; i < 4; ++i)
         {
-            send_can_frame(i + 1, stopCmd);
+            send_can_frame(i + 1, stopCmd, true);
         }
+        // 等待 tx 队列被硬件发出（给一点时间）
+        double waitTimeStart = rclcpp::Clock().now().seconds();
+        while (rclcpp::Clock().now().seconds() - waitTimeStart <= 10 * 0.001)
+        {
+        }
+        RCLCPP_INFO(rclcpp::get_logger("Can"), "Stop frames sent.");
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 
@@ -175,7 +181,7 @@ namespace can_hardware
         }
     }
 
-    void CanHardwareInterface::send_can_frame(int motorId, MIT &cmd)
+    void CanHardwareInterface::send_can_frame(int motorId, MIT &cmd, bool sync)
     {
         can_frame frame_to_send;
         frame_to_send.can_id = 0x200 + motorId;
@@ -203,7 +209,13 @@ namespace can_hardware
         frame_to_send.data[7] = torInt & 0xFF;
 
         // 发送数据
-        can_core_->send_frame(frame_to_send);
+        if (sync)
+        {
+            can_core_->send_frame_sync(frame_to_send);
+            RCLCPP_INFO(rclcpp::get_logger("Can"), "sent sync frame once");
+        }
+        else
+            can_core_->send_frame(frame_to_send);
     }
 
     float uint_to_float(int x_int, float x_min, float x_max, int bits)

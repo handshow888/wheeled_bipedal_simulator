@@ -24,6 +24,11 @@ CanSerial::CanSerial(const std::string &interface)
 
 CanSerial::~CanSerial()
 {
+    running_ = false;
+    tx_cv_.notify_all();
+    if (tx_thread_.joinable())
+        tx_thread_.join();
+
     if (sock_ >= 0)
         close(sock_);
     io_service_.stop();
@@ -96,35 +101,94 @@ void CanSerial::start_io_service()
         std::cout << "启动Boost.Asio事件循环..." << std::endl;
         io_service_.run();  // 阻塞，直到io_service_.stop()被调用
         std::cout << "Boost.Asio事件循环已停止" << std::endl; });
+
+    // 新增发送线程
+    tx_thread_ = std::thread(&CanSerial::tx_loop, this);
+    std::cout << "发送线程已启动" << std::endl;
 }
 
-void CanSerial::send_frame(const can_frame &frame)
+void CanSerial::tx_loop()
 {
-    boost::system::error_code ec;
-    size_t len = stream_.write_some(boost::asio::buffer(&frame, sizeof(frame)), ec);
-    if (ec)
+    while (running_)
     {
-        if (ec == boost::asio::error::would_block ||
-            ec == boost::asio::error::try_again ||
-            ec.value() == ENOBUFS)
+        std::unique_lock<std::mutex> lock(tx_mutex_);
+        tx_cv_.wait(lock, [this]
+                    { return !tx_queue_.empty() || !running_; });
+        if (!running_)
+            break;
+
+        // 取出队首帧
+        can_frame frame = tx_queue_.front();
+        tx_queue_.pop();
+        lock.unlock();
+
+        // 实际发送（阻塞但只阻塞发送线程）
+        boost::system::error_code ec;
+        while (running_)
         {
-            // 缓冲区满，丢弃该帧
-            static int drop_count = 0;
-            if (++drop_count % 100 == 0)
+            size_t len = stream_.write_some(boost::asio::buffer(&frame, sizeof(frame)), ec);
+            (void)len;
+            if (!ec)
             {
-                std::cerr << "[CanSerial] CAN send buffer full, dropped "
-                          << drop_count << " frames so far" << std::endl;
+                break; // 发送成功
+            }
+            else if (ec == boost::asio::error::would_block ||
+                     ec == boost::asio::error::try_again ||
+                     ec.value() == ENOBUFS)
+            {
+                // 缓冲区短暂满，等待一小段时间再试
+                std::this_thread::sleep_for(std::chrono::microseconds(100));
+            }
+            else
+            {
+                std::cerr << "[CanSerial] Send error: " << ec.message() << std::endl;
+                break;
             }
         }
-        else
+    }
+}
+
+// 新的 send_frame：只负责入队
+void CanSerial::send_frame(const can_frame &frame)
+{
+    if (!running_)
+        return;
+    std::lock_guard<std::mutex> lock(tx_mutex_);
+    // 限制队列大小，超出时丢弃最旧的帧（保证实时性）
+    const size_t max_queue = 64;
+    if (tx_queue_.size() >= max_queue)
+    {
+        tx_queue_.pop(); // 丢旧帧
+    }
+    tx_queue_.push(frame);
+    tx_cv_.notify_one();
+}
+
+void CanSerial::send_frame_sync(const can_frame &frame)
+{
+    for (int retry = 0; retry < 100; ++retry)
+    {
+        ssize_t n = ::write(sock_, &frame, sizeof(frame));
+        if (n == sizeof(frame))
         {
-            std::cerr << "[CanSerial] Send error: " << ec.message() << std::endl;
+            return; // 成功
+        }
+        if (n < 0)
+        {
+            if (errno == ENOBUFS || errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                // 缓冲区暂满，等待 50us 后重试
+                std::this_thread::sleep_for(std::chrono::microseconds(50));
+                continue;
+            }
+            else
+            {
+                std::cerr << "[CanSerial] Sync send fatal error: " << strerror(errno) << std::endl;
+                break;
+            }
         }
     }
-    else if (len != sizeof(can_frame))
-    {
-        std::cerr << "[CanSerial] Incomplete send" << std::endl;
-    }
+    std::cerr << "[CanSerial] Sync send failed after retries" << std::endl;
 }
 
 void CanSerial::set_frame_callback(FrameCallback callback)
