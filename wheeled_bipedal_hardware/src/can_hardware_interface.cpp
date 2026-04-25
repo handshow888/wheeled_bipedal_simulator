@@ -45,13 +45,16 @@ namespace can_hardware
     {
         (void)pre;
         MIT stopCmd;
-        for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 10; ++j)
         {
-            send_can_frame(i + 1, stopCmd, true);
+            for (int i = 0; i < 4; ++i)
+            {
+                send_can_frame(i + 1, stopCmd, true);
+            }
         }
         // 等待 tx 队列被硬件发出（给一点时间）
         double waitTimeStart = rclcpp::Clock().now().seconds();
-        while (rclcpp::Clock().now().seconds() - waitTimeStart <= 10 * 0.001)
+        while (rclcpp::Clock().now().seconds() - waitTimeStart <= 20 * 0.001)
         {
         }
         RCLCPP_INFO(rclcpp::get_logger("Can"), "Stop frames sent.");
@@ -212,7 +215,7 @@ namespace can_hardware
         if (sync)
         {
             can_core_->send_frame_sync(frame_to_send);
-            RCLCPP_INFO(rclcpp::get_logger("Can"), "sent sync frame once");
+            // RCLCPP_INFO(rclcpp::get_logger("Can"), "sent sync frame once");
         }
         else
             can_core_->send_frame(frame_to_send);
