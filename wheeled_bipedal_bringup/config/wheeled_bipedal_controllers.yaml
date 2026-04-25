@@ -52,7 +52,7 @@ wheeled_bipedal_controller:
     rod_lengths: [0.150, 0.250, 0.250, 0.150, 0.107992374] # L1 - L5
     wheel_radius: 0.069
     wheel_separation: 0.445
-    wheel_mass: 0.85254
+    wheel_mass: 2.1
     leg_length_min: 0.20
     leg_length_max: 0.37
     # LQR的K矩阵拟合多项式的系数（从低次项系数到高次项系数排序）
@@ -73,22 +73,35 @@ wheeled_bipedal_controller:
 
     # PID 参数
     # 左腿
+    # left:
+    #   leg_length_P: 0.0
+    #   leg_length_I: 0.0
+    #   leg_length_D: 0.0
+    #   leg_length: 0.25 # 初始腿长
+    # # 右腿
+    # right:
+    #   same_with_left: false # true表示与左腿采用相同参数
+    #   leg_length_P: 0.0
+    #   leg_length_I: 0.0
+    #   leg_length_D: 0.0
+    #   leg_length: 0.25 # 初始腿长
+    # 左腿
     left:
-      leg_length_P: 0.0
-      leg_length_I: 0.0
-      leg_length_D: 0.0
+      leg_length_P: 600.0
+      leg_length_I: 30.0
+      leg_length_D: 1.0
       leg_length: 0.25 # 初始腿长
     # 右腿
     right:
       same_with_left: false # true表示与左腿采用相同参数
-      leg_length_P: 0.0
-      leg_length_I: 0.0
-      leg_length_D: 0.0
+      leg_length_P: 600.0
+      leg_length_I: 30.0
+      leg_length_D: 2.0
       leg_length: 0.25 # 初始腿长
     # 腿长PID前馈值
     leg_length_feedforward: 0.0
     # 左右两腿 phi0 角度差pid控制器
-    delta_phi0_P: 0.0
+    delta_phi0_P: 10.0
     delta_phi0_I: 0.0
     delta_phi0_D: 0.0
     # 角速度PID

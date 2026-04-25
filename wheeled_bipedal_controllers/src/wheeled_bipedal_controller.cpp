@@ -83,7 +83,7 @@ namespace wheeled_bipedal_controller
             return CallbackReturn::ERROR;
         }
         // if (command_interface_name_ == "position")
-        //     joint_control_type = commandType::position; 
+        //     joint_control_type = commandType::position;
         // else if (command_interface_name_ == "effort")
         //     joint_control_type = commandType::effort;
         // else
@@ -354,8 +354,9 @@ namespace wheeled_bipedal_controller
             leftFeedforward_F = legLengthFeedforward_ / cos(leftTheta);
             rightFeedforward_F = legLengthFeedforward_ / cos(rightTheta);
         }
-        RCLCPP_INFO(get_node()->get_logger(), "L:PID_F:%.3f FF_F:%.3f  R:PID_F:%.3f FF_F:%.3f L:Target_L:%.3f L:%.3f",
-                    leftVMC_F, leftFeedforward_F, rightVMC_F, rightFeedforward_F, leftLegLengthCpstTarget, leftFKResult.L0);
+        RCLCPP_INFO(get_node()->get_logger(), "L:PID_F:%.3f FF_F:%.3f  R:PID_F:%.3f FF_F:%.3f L:Target_L:%.3f L:%.3f R:Target_L:%.3f L:%.3f",
+                    leftVMC_F, leftFeedforward_F, rightVMC_F, rightFeedforward_F,
+                    leftLegLengthCpstTarget, leftFKResult.L0, rightLegLengthCpstTarget, rightFKResult.L0);
         leftVMC_F += leftFeedforward_F;
         rightVMC_F += rightFeedforward_F;
 
@@ -369,7 +370,7 @@ namespace wheeled_bipedal_controller
         // 上一次循环的支持力解算结果
         static double leftF_NLast = 0.0, leftDDz_wLast = 0.0;
         static double rightF_NLast = 0.0, rightDDz_wLast = 0.0;
-        if (leftDDz_wLast < -8.0 && rightDDz_wLast < -8.0)
+        if ((leftDDz_wLast < -8.0 && rightDDz_wLast < -8.0) || (leftF_NLast < -0.0 && rightF_NLast < -0.0))
         {
             LQR::calKmat(leftFKResult.L0, true);
             LQR::calKmat(rightFKResult.L0, true);
@@ -432,15 +433,15 @@ namespace wheeled_bipedal_controller
         rightVMC_T1 = clamp(rightVMC_T1, -joint_command_limit_, joint_command_limit_);
 
         std_msgs::msg::Float64MultiArray testMsg;
-        // testMsg.data.push_back(INS.MotionAccel_n[2]);
-        // testMsg.data.push_back(leftF_N);
-        // testMsg.data.push_back(rightF_N);
-        // testMsg.data.push_back(leftDDz_w);
-        // testMsg.data.push_back(rightDDz_w);
-        testMsg.data.push_back(leftVMC_T2);
-        testMsg.data.push_back(leftVMC_T1);
-        testMsg.data.push_back(rightVMC_T2);
-        testMsg.data.push_back(rightVMC_T1);
+        testMsg.data.push_back(INS.MotionAccel_n[2]);
+        testMsg.data.push_back(leftF_N);
+        testMsg.data.push_back(rightF_N);
+        testMsg.data.push_back(leftDDz_w);
+        testMsg.data.push_back(rightDDz_w);
+        // testMsg.data.push_back(leftVMC_T2);
+        // testMsg.data.push_back(leftVMC_T1);
+        // testMsg.data.push_back(rightVMC_T2);
+        // testMsg.data.push_back(rightVMC_T1);
         testInfoPub_->publish(testMsg);
 
         command_interfaces_[0].set_value(leftVMC_T2);
