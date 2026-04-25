@@ -9,9 +9,9 @@
             <plugin>wheeled_bipedal_hardware/WheeledBipedalHardwareInterface</plugin>
             <param name="port_name">/dev/ttyUSB0</param>
             <param name="baud_rate">921600</param>
-            <param name="imuGyroOffset_X">0.618614</param>
-            <param name="imuGyroOffset_Y">0.121066</param>
-            <param name="imuGyroOffset_Z">-1.538492</param>
+            <param name="imuGyroOffset_X">1.411759</param>
+            <param name="imuGyroOffset_Y">0.369392</param>
+            <param name="imuGyroOffset_Z">-2.945295</param>
         </hardware>
 
         <joint name="joint_motor">
