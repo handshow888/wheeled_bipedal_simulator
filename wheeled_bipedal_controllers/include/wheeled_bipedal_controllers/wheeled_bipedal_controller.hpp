@@ -85,6 +85,8 @@ namespace wheeled_bipedal_controller
 
         bool debug_; // 是否在update函数中实时获取动态参数
 
+        double pitchCompensation = 0.0;
+
         // ros2_control 参数
         std::vector<std::string> joint_names_, state_interface_names_;
         std::string command_interface_name_, imu_name_;

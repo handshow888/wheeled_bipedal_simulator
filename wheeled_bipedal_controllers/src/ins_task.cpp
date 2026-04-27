@@ -15,7 +15,7 @@ static constexpr int Z = 2;
 
 void INS_Init()
 {
-    IMU_QuaternionEKF_Init(10, 0.001, 10000000, 1, 0);
+    IMU_QuaternionEKF_Init(1, 0.0001, 100000000, 1, 0.0);
     INS.AccelLPF = 0.0085;
 }
 

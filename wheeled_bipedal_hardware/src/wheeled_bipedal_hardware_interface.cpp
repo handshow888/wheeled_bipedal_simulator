@@ -19,6 +19,26 @@ namespace wheeled_bipedal_hardware
         imuGyroOffset[1] = std::stod(info_.hardware_parameters["imuGyroOffset_Y"]);
         imuGyroOffset[2] = std::stod(info_.hardware_parameters["imuGyroOffset_Z"]);
 
+        accel_scale_ = std::stod(info_.hardware_parameters["accel_scale"]);
+
+        std::string param_str = info_.hardware_parameters["calibration_matrix"];
+        std::vector<double> matrix_values;
+        std::stringstream ss(param_str);
+        std::string token;
+        while (std::getline(ss, token, ','))
+        {
+            matrix_values.push_back(std::stod(token));
+        }
+        // 组装成 3x3 矩阵
+        if (matrix_values.size() == 9)
+        {
+            for (int i = 0; i < 3; ++i)
+                for (int j = 0; j < 3; ++j)
+                    calibration_matrix_[i][j] = matrix_values[i * 3 + j];
+        }
+
+        useCalibration_ = std::stoi(info_.hardware_parameters["useCalibration"]);
+
         return hardware_interface::CallbackReturn::SUCCESS;
     }
 
@@ -58,6 +78,11 @@ namespace wheeled_bipedal_hardware
         (void)period;
         std::lock_guard<std::mutex> lock(state_mutex_);
         hw_state_imu_ = latest_imu_state_;
+        hw_state_imu_.ax *= accel_scale_;
+        hw_state_imu_.ay *= accel_scale_;
+        hw_state_imu_.az *= accel_scale_;
+        if (useCalibration_)
+            applyCalibration();
         hw_state_motors_[0].vel = latest_motors_state_[0].vel;
         hw_state_motors_[1].vel = latest_motors_state_[1].vel;
         hw_state_joint_motor_ = jointMotorState;
@@ -132,9 +157,9 @@ namespace wheeled_bipedal_hardware
             latest_imu_state_.ax = static_cast<double>(pkg->ax) * 9.81;
             latest_imu_state_.ay = static_cast<double>(pkg->ay) * 9.81;
             latest_imu_state_.az = static_cast<double>(pkg->az) * 9.81;
-            latest_imu_state_.gx = (static_cast<double>(pkg->gx) - imuGyroOffset[0]) * (M_PI / 180.0);
-            latest_imu_state_.gy = (static_cast<double>(pkg->gy) - imuGyroOffset[1]) * (M_PI / 180.0);
-            latest_imu_state_.gz = (static_cast<double>(pkg->gz) - imuGyroOffset[2]) * (M_PI / 180.0);
+            latest_imu_state_.gx = (static_cast<double>(pkg->gx)) * (M_PI / 180.0);
+            latest_imu_state_.gy = (static_cast<double>(pkg->gy)) * (M_PI / 180.0);
+            latest_imu_state_.gz = (static_cast<double>(pkg->gz)) * (M_PI / 180.0);
             // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
             //         "ax:%.3f \tay:%.3f \taz:%.3f \tgx:%.3f \tgy:%.3f \tgz:%.3f\n",
             //         latest_imu_state_.ax, latest_imu_state_.ay, latest_imu_state_.az,
@@ -162,6 +187,39 @@ namespace wheeled_bipedal_hardware
         default:
             break;
         }
+    }
+
+    void WheeledBipedalHardwareInterface::applyCalibration()
+    {
+        double acc_x_temp = hw_state_imu_.ax;
+        double acc_y_temp = hw_state_imu_.ay;
+        double acc_z_temp = hw_state_imu_.az;
+        hw_state_imu_.ax = calibration_matrix_[0][0] * acc_x_temp +
+                           calibration_matrix_[0][1] * acc_y_temp +
+                           calibration_matrix_[0][2] * acc_z_temp;
+        hw_state_imu_.ay = calibration_matrix_[1][0] * acc_x_temp +
+                           calibration_matrix_[1][1] * acc_y_temp +
+                           calibration_matrix_[1][2] * acc_z_temp;
+        hw_state_imu_.az = calibration_matrix_[2][0] * acc_x_temp +
+                           calibration_matrix_[2][1] * acc_y_temp +
+                           calibration_matrix_[2][2] * acc_z_temp;
+
+        hw_state_imu_.gx -= imuGyroOffset[0];
+        hw_state_imu_.gy -= imuGyroOffset[1];
+        hw_state_imu_.gz -= imuGyroOffset[2];
+
+        double gyro_x_temp = hw_state_imu_.gx;
+        double gyro_y_temp = hw_state_imu_.gy;
+        double gyro_z_temp = hw_state_imu_.gz;
+        hw_state_imu_.gx = calibration_matrix_[0][0] * gyro_x_temp +
+                           calibration_matrix_[0][1] * gyro_y_temp +
+                           calibration_matrix_[0][2] * gyro_z_temp;
+        hw_state_imu_.gy = calibration_matrix_[1][0] * gyro_x_temp +
+                           calibration_matrix_[1][1] * gyro_y_temp +
+                           calibration_matrix_[1][2] * gyro_z_temp;
+        hw_state_imu_.gz = calibration_matrix_[2][0] * gyro_x_temp +
+                           calibration_matrix_[2][1] * gyro_y_temp +
+                           calibration_matrix_[2][2] * gyro_z_temp;
     }
 
 } // namespace wheeled_bipedal_hardware

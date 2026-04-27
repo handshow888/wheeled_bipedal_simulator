@@ -52,6 +52,7 @@ namespace wheeled_bipedal_hardware
         std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
         void receiveCallback(const uint8_t *data);
+        void applyCalibration();
 
     private:
         std::unique_ptr<USBSerial> serial_core_;
@@ -63,6 +64,9 @@ namespace wheeled_bipedal_hardware
         // 接收线程最新数据缓存
         imuState latest_imu_state_;
         double imuGyroOffset[3];
+        double calibration_matrix_[3][3];
+        double accel_scale_ = 1.0;
+        int useCalibration_ = 1;
         std::array<motorState, 2> latest_motors_state_{};
         double jointMotorState = 0.0;  // 关节电机: 0失能 非0使能
 

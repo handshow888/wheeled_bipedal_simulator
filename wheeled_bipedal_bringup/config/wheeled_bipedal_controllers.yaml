@@ -45,10 +45,11 @@ wheeled_bipedal_controller:
         "left_wheel_joint",
         "right_wheel_joint",
       ]
-    joints_bias_values: [1.6577, 1.6037, 1.5967, 1.5497] # upper_link关节电机state position和tf的偏差值 bias = tf - state
+    joints_bias_values: [1.6407, 1.6007, 1.6707, 1.5707] # upper_link关节电机state position和tf的偏差值 bias = tf - state
     command_interface_type: "effort" # "position", "velocity", "effort"
     joint_command_limit: 5.0
     imu_name: "imu_sensor"
+    pitch_compensation: 2.0
     rod_lengths: [0.150, 0.250, 0.250, 0.150, 0.107992374] # L1 - L5
     wheel_radius: 0.069
     wheel_separation: 0.445
@@ -56,31 +57,31 @@ wheeled_bipedal_controller:
     leg_length_min: 0.20
     leg_length_max: 0.37
     # LQR的K矩阵拟合多项式的系数（从低次项系数到高次项系数排序）
-    # K11poly: [-2.7546, -55.0391, 112.3773, -93.6770]
-    # K12poly: [-0.3144, -3.8811, 0.0950, 1.2799]
-    # K13poly: [-0.1297, -0.3475, 0.8706, -0.7814]
-    # K14poly: [-0.6130, -1.2785, 2.9583, -2.5645]
-    # K15poly: [2.5308, -10.0846, 19.8632, -15.5791]
-    # K16poly: [0.9648, -3.7520, 7.4472, -5.9107]
-    # K21poly: [2.7596, 1.7001, -18.9229, 24.2529]
-    # K22poly: [0.3451, -0.3796, 0.4969, -0.4054]
-    # K23poly: [0.1415, -0.5564, 1.0129, -0.7287]
-    # K24poly: [0.6324, -2.5656, 4.8514, -3.6296]
-    # K25poly: [1.5817, 6.7649, -17.1438, 15.6165]
-    # K26poly: [0.5179, 2.5252, -6.3336, 5.7380]
+    K11poly: [1.3248, -70.5012, 136.0298, -103.5741]
+    K12poly: [0.2314, -4.7932, 0.8240, 1.9439]
+    K13poly: [0.0095, -0.1518, 0.3581, -0.3086]
+    K14poly: [0.3147, -5.0322, 11.8502, -10.2086]
+    K15poly: [0.6384, -2.2793, 2.4289, -0.4425]
+    K16poly: [0.3913, -0.3554, -1.4302, 2.3812]
+    K21poly: [4.8793, 46.0317, -192.2447, 207.7976]
+    K22poly: [-0.0811, 7.7601, -21.2803, 19.1016]
+    K23poly: [0.0373, -0.0456, -0.0919, 0.1826]
+    K24poly: [1.2345, -1.5029, -3.0569, 6.0537]
+    K25poly: [-0.3564, 10.9718, -27.7924, 25.0648]
+    K26poly: [-0.4379, 6.2418, -14.4020, 12.1905]
 
-    K11poly: [0.0]
-    K12poly: [0.0]
-    K13poly: [0.0]
-    K14poly: [0.0]
-    K15poly: [0.0]
-    K16poly: [0.0]
-    K21poly: [0.0]
-    K22poly: [0.0]
-    K23poly: [0.0]
-    K24poly: [0.0]
-    K25poly: [0.0]
-    K26poly: [0.0]
+    # K11poly: [0.0]
+    # K12poly: [0.0]
+    # K13poly: [0.0]
+    # K14poly: [0.0]
+    # K15poly: [0.0]
+    # K16poly: [0.0]
+    # K21poly: [0.0]
+    # K22poly: [0.0]
+    # K23poly: [0.0]
+    # K24poly: [0.0]
+    # K25poly: [0.0]
+    # K26poly: [0.0]
 
     debug: true # 是否在每次update时获取动态参数
 
@@ -108,15 +109,15 @@ wheeled_bipedal_controller:
     right:
       same_with_left: false # true表示与左腿采用相同参数
       leg_length_P: 600.0
-      leg_length_I: 30.0
-      leg_length_D: 2.0
+      leg_length_I: 50.0
+      leg_length_D: 1.0
       leg_length: 0.25 # 初始腿长
     # 腿长PID前馈值
     leg_length_feedforward: 0.0
     # 左右两腿 phi0 角度差pid控制器
-    delta_phi0_P: 10.0
-    delta_phi0_I: 0.0
-    delta_phi0_D: 0.0
+    delta_phi0_P: 40.0
+    delta_phi0_I: 20.0
+    delta_phi0_D: 0.075
     # 角速度PID
     angular_vel_P: 0.0
     angular_vel_I: 0.0

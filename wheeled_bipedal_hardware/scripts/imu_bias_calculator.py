@@ -97,10 +97,12 @@ class ImuBiasCalculator(Node):
         # 输出结果
         self.get_logger().info('========== IMU 零偏计算结果 ==========')
         self.get_logger().info(f'样本数量: {len(ang_x)}')
-        self.get_logger().info(f'角速度零偏 (rad/s):  X={bias_ang[0]:.6f}, Y={bias_ang[1]:.6f}, Z={bias_ang[2]:.6f}')
-        self.get_logger().info(f'角速度标准差 (rad/s): X={std_ang[0]:.6f}, Y={std_ang[1]:.6f}, Z={std_ang[2]:.6f}')
+        self.get_logger().info(f'角速度零偏 (°/s):  X={bias_ang[0]:.6f}, Y={bias_ang[1]:.6f}, Z={bias_ang[2]:.6f}')
+        self.get_logger().info(f'角速度标准差 (°/s): X={std_ang[0]:.6f}, Y={std_ang[1]:.6f}, Z={std_ang[2]:.6f}')
         self.get_logger().info(f'加速度零偏 (m/s²):  X={bias_acc[0]:.6f}, Y={bias_acc[1]:.6f}, Z={bias_acc[2]:.6f}')
         self.get_logger().info(f'加速度标准差 (m/s²): X={std_acc[0]:.6f}, Y={std_acc[1]:.6f}, Z={std_acc[2]:.6f}')
+        self.get_logger().info('========================================')
+        self.get_logger().info(f'角速度零偏 (rad/s):  X={bias_ang[0]*np.pi/180.0:.6f}, Y={bias_ang[1]*np.pi/180.0:.6f}, Z={bias_ang[2]*np.pi/180.0:.6f}')
         self.get_logger().info('========================================')
 
         # 可选：将结果写入文件
