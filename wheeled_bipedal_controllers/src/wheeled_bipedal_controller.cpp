@@ -219,18 +219,40 @@ namespace wheeled_bipedal_controller
     controller_interface::return_type WheeledBipedalController::update(const rclcpp::Time &time, const rclcpp::Duration &period)
     {
         // (void)time;
-        // (void)period;
+        (void)period;
         static double initTime = time.seconds();
+        static double lastImuTimestamp = 0.0;
 
         loadStates();
+
         double leftWheelVel = lwMotorStates_.velocity * wheelRadius;
         double rightWheelVel = rwMotorStates_.velocity * wheelRadius;
-        double dt = period.seconds();
+        // double dt = period.seconds();
+        double dt = imuStates_.timestamp - lastImuTimestamp;
+        if (lastImuTimestamp == 0.0)
+        {
+            lastImuTimestamp = imuStates_.timestamp;
+            return controller_interface::return_type::OK;
+        }
+        else
+            lastImuTimestamp = imuStates_.timestamp;
+            
+        if (dt == 0.0)
+            return controller_interface::return_type::OK;
+        // static int recValidCount = 0;
+        // static double recValidFirstTime = 0.0;
+        // if (recValidFirstTime == 0.0)
+        // {
+        //     recValidFirstTime = time.seconds();
+        // }
+        // ++recValidCount;
+        // double nowTime = time.seconds();
+        // RCLCPP_INFO(get_node()->get_logger(), "rec valid rate hz:%.3f", recValidCount / (nowTime - recValidFirstTime));
 
         INS_Task(imuStates_.lin_acc_x, imuStates_.lin_acc_y, imuStates_.lin_acc_z,
                  imuStates_.ang_vel_x, imuStates_.ang_vel_y, imuStates_.ang_vel_z,
                  dt);
-        RCLCPP_INFO(get_node()->get_logger(), "R:%.3f P:%.3f Y:%.3f dt:%.6f", INS.Roll, INS.Pitch, INS.Yaw, dt);
+        // RCLCPP_INFO(get_node()->get_logger(), "R:%.3f P:%.3f Y:%.3f dt:%.6f", INS.Roll, INS.Pitch, INS.Yaw, dt);
         // RCLCPP_INFO(get_node()->get_logger(), "tf:LF:%.2f LR:%.2f RF:%.2f RR:%.2f",
         //             lfMotorStates_.position * rad2deg,
         //             lrMotorStates_.position * rad2deg,
@@ -614,6 +636,7 @@ namespace wheeled_bipedal_controller
         imuStates_.lin_acc_x = state_interfaces_[imu_state_indices_[3]].get_value();
         imuStates_.lin_acc_y = state_interfaces_[imu_state_indices_[4]].get_value();
         imuStates_.lin_acc_z = state_interfaces_[imu_state_indices_[5]].get_value();
+        imuStates_.timestamp = state_interfaces_[imu_state_indices_[6]].get_value();
     }
 
 } // namespace wheeled_bipedal_controller

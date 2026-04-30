@@ -10,9 +10,9 @@
             <param name="port_name">/dev/wbserial</param>
             <param name="baud_rate">921600</param>
             <param name="useCalibration">1</param>
-            <param name="imuGyroOffset_X">0.024523</param>
-            <param name="imuGyroOffset_Y">0.006679</param>
-            <param name="imuGyroOffset_Z">-0.048152</param>
+            <param name="imuGyroOffset_X">0.011531</param>
+            <param name="imuGyroOffset_Y">0.002907</param>
+            <param name="imuGyroOffset_Z">-0.024056</param>
             <param name="calibration_matrix">0.9999225531084546, -8.417867000342136e-06, 0.01244538927512398, -8.417867000342136e-06, 0.9999990850441712, 0.001352715771993947, -0.01244538927512398, -0.001352715771993947, 0.9999216381526258</param>
             <param name="accel_scale">1.03553279</param>
             <!-- <param name="accel_scale">1.0</param> -->
@@ -50,6 +50,7 @@
             <state_interface name="linear_acceleration.x" />
             <state_interface name="linear_acceleration.y" />
             <state_interface name="linear_acceleration.z" />
+            <state_interface name="timestamp.sec" />
         </sensor>
     </ros2_control>
 

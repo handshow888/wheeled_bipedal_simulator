@@ -34,6 +34,7 @@ namespace wheeled_bipedal_controller
         double lin_acc_x;
         double lin_acc_y;
         double lin_acc_z;
+        double timestamp;
     };
 
     enum class commandType : u_int8_t
@@ -100,14 +101,15 @@ namespace wheeled_bipedal_controller
         std::vector<size_t> lw_motor_state_indices_, rw_motor_state_indices_;                                                   // 轮毂电机
         // IMU 索引缓存
         std::vector<size_t> imu_state_indices_;
-        // 预定义 IMU 的 6 个状态接口名称
+        // 预定义 IMU 的状态接口名称
         const std::vector<std::string> imu_interface_names_ = {
             "angular_velocity.x",
             "angular_velocity.y",
             "angular_velocity.z",
             "linear_acceleration.x",
             "linear_acceleration.y",
-            "linear_acceleration.z"};
+            "linear_acceleration.z",
+            "timestamp.sec"};
 
     }; // WheeledBipedalController
 } // namespace wheeled_bipedal_controller

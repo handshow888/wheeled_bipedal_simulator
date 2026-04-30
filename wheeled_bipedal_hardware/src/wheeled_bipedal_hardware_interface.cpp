@@ -92,6 +92,7 @@ namespace wheeled_bipedal_hardware
         // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
         //             "ax:%.3f \tay:%.3f \taz:%.3f \tgx:%.3f \tgy:%.3f \tgz:%.3f\n",
         //             hw_state_imu_.ax, hw_state_imu_.ay, hw_state_imu_.az, hw_state_imu_.gx, hw_state_imu_.gy, hw_state_imu_.gz);
+        // RCLCPP_INFO(rclcpp::get_logger("WBHI read"), "read rate hz:%.4f", 1.0 / period.seconds());
         return hardware_interface::return_type::OK;
     }
 
@@ -127,6 +128,7 @@ namespace wheeled_bipedal_hardware
         state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "angular_velocity.x", &hw_state_imu_.gx));
         state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "angular_velocity.y", &hw_state_imu_.gy));
         state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "angular_velocity.z", &hw_state_imu_.gz));
+        state_interfaces.emplace_back(hardware_interface::StateInterface("imu_sensor", "timestamp.sec", &hw_state_imu_.timestamp));
 
         state_interfaces.emplace_back(hardware_interface::StateInterface("left_wheel_joint", "position", &hw_state_motors_[0].pos));
         state_interfaces.emplace_back(hardware_interface::StateInterface("left_wheel_joint", "velocity", &hw_state_motors_[0].vel));
@@ -160,10 +162,27 @@ namespace wheeled_bipedal_hardware
             latest_imu_state_.gx = (static_cast<double>(pkg->gx)) * (M_PI / 180.0);
             latest_imu_state_.gy = (static_cast<double>(pkg->gy)) * (M_PI / 180.0);
             latest_imu_state_.gz = (static_cast<double>(pkg->gz)) * (M_PI / 180.0);
-            // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
-            //         "ax:%.3f \tay:%.3f \taz:%.3f \tgx:%.3f \tgy:%.3f \tgz:%.3f\n",
+            double recTimestamp = static_cast<double>(pkg->timestamp) * 1e-6;
+            if (recTimestamp < latest_imu_state_.timestamp)
+                ++latest_imu_state_.timestampLoopCount; // 计数器溢出计数
+            latest_imu_state_.timestamp = recTimestamp + latest_imu_state_.timestampLoopCount * (4294967296.0 * 1e-6);
+            // RCLCPP_INFO(rclcpp::get_logger("WBHI"),
+            //         "ax:%.3f \tay:%.3f \taz:%.3f \tgx:%.3f \tgy:%.3f \tgz:%.3f \ttime:%.6f\n",
             //         latest_imu_state_.ax, latest_imu_state_.ay, latest_imu_state_.az,
-            //         latest_imu_state_.gx, latest_imu_state_.gy, latest_imu_state_.gz);
+            //         latest_imu_state_.gx, latest_imu_state_.gy, latest_imu_state_.gz,
+            //         latest_imu_state_.timestamp);
+
+            // static int recCount = 0;
+            // static double firstRecTime = 0;
+            // if (firstRecTime == 0.0)
+            // {
+            //     firstRecTime = rclcpp::Clock().now().seconds();
+            //     break;
+            // }
+            // ++recCount;
+            // double nowTime = rclcpp::Clock().now().seconds();
+            // RCLCPP_INFO(rclcpp::get_logger("WBHI"), "rec imu rate hz:%.3f", recCount / (nowTime - firstRecTime));
+
             break;
         }
         case 0x5B:
@@ -176,6 +195,17 @@ namespace wheeled_bipedal_hardware
             // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
             //             "%.5f %.5f",
             //             hw_state_motors_[0].vel, hw_state_motors_[1].vel);
+
+            // static int recCount = 0;
+            // static double firstRecTime = 0;
+            // if (firstRecTime == 0.0)
+            // {
+            //     firstRecTime = rclcpp::Clock().now().seconds();
+            //     break;
+            // }
+            // ++recCount;
+            // double nowTime = rclcpp::Clock().now().seconds();
+            // RCLCPP_INFO(rclcpp::get_logger("WBHI"), "rec motors_state rate hz:%.3f", recCount / (nowTime - firstRecTime));
             break;
         }
         case 0x5C:

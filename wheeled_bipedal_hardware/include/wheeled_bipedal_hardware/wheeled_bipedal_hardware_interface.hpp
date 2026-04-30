@@ -15,6 +15,8 @@ namespace wheeled_bipedal_hardware
         double gx = 0.0;
         double gy = 0.0;
         double gz = 0.0;
+        double timestamp = 0.0;
+        int timestampLoopCount = 0; // 计数器溢出计数
     };
 
     struct motorState
@@ -68,7 +70,7 @@ namespace wheeled_bipedal_hardware
         double accel_scale_ = 1.0;
         int useCalibration_ = 1;
         std::array<motorState, 2> latest_motors_state_{};
-        double jointMotorState = 0.0;  // 关节电机: 0失能 非0使能
+        double jointMotorState = 0.0; // 关节电机: 0失能 非0使能
 
         // 状态和命令变量
         imuState hw_state_imu_;

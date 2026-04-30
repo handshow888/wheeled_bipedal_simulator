@@ -13,6 +13,7 @@ struct ReceivePackage
     float gx;
     float gy;
     float gz;
+    uint32_t timestamp;
     uint16_t crc16 = 0xFFFF;
 } __attribute__((packed));
 
