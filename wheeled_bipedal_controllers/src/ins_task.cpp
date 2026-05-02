@@ -15,7 +15,7 @@ static constexpr int Z = 2;
 
 void INS_Init()
 {
-    IMU_QuaternionEKF_Init(1, 0.0001, 100000000, 1, 0.0);
+    IMU_QuaternionEKF_Init(10, 0.001, 10000000, 1, 0);
     INS.AccelLPF = 0.0085;
 }
 
@@ -66,7 +66,7 @@ void INS_Task(double aX, double aY, double aZ, double gX, double gY, double gZ, 
     if (std::isnan(QEKF_INS.q[0]) || std::isnan(QEKF_INS.q[1]) || std::isnan(QEKF_INS.q[2]) || std::isnan(QEKF_INS.q[3]))
     {
         QEKF_INS_Q_Nan_count++;
-        printf("q0: %.3f \tq1: %.3f \tq2: %.3f \tq3: %.3f\n", QEKF_INS.q[0], QEKF_INS.q[1], QEKF_INS.q[2], QEKF_INS.q[3]);
+        printf("q0:%.3f \tq1:%.3f \tq2:%.3f \tq3:%.3f \tdt:%.6f\n", QEKF_INS.q[0], QEKF_INS.q[1], QEKF_INS.q[2], QEKF_INS.q[3], dt);
         // std::cerr << "Quaternion is NaN updateCount:" << QEKF_INS.UpdateCount << std::endl;
         exit(1);
     }

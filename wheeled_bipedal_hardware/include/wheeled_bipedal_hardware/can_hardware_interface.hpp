@@ -1,5 +1,6 @@
 #pragma once
 
+#include <queue>
 #include "rclcpp/rclcpp.hpp"
 #include "hardware_interface/system_interface.hpp"
 #include "CanSerialCore.hpp"
@@ -56,6 +57,9 @@ namespace can_hardware
         std::unique_ptr<CanSerial> can_core_;
         std::mutex state_mutex_;
 
+        std::array<std::queue<MIT>,4> motorStatesQueue_;
+
+        // 接收到的数据
         std::array<MIT, 4> motorStates_{};
 
         // 状态和命令变量

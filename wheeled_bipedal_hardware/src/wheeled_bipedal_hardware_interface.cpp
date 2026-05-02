@@ -77,15 +77,36 @@ namespace wheeled_bipedal_hardware
         (void)time;
         (void)period;
         std::lock_guard<std::mutex> lock(state_mutex_);
-        hw_state_imu_ = latest_imu_state_;
-        hw_state_imu_.ax *= accel_scale_;
-        hw_state_imu_.ay *= accel_scale_;
-        hw_state_imu_.az *= accel_scale_;
-        if (useCalibration_)
-            applyCalibration();
-        hw_state_motors_[0].vel = latest_motors_state_[0].vel;
-        hw_state_motors_[1].vel = latest_motors_state_[1].vel;
-        hw_state_joint_motor_ = jointMotorState;
+        if (!imuStateQueue_.empty())
+        {
+            hw_state_imu_ = imuStateQueue_.front();
+            imuStateQueue_.pop();
+            hw_state_imu_.ax *= accel_scale_;
+            hw_state_imu_.ay *= accel_scale_;
+            hw_state_imu_.az *= accel_scale_;
+            if (useCalibration_)
+                applyCalibration();
+        }
+        else
+            // RCLCPP_WARN(rclcpp::get_logger("WBHI read"), "Imu no new data!");
+
+            if (!motorStateQueue_[0].empty())
+            {
+                hw_state_motors_[0].vel = motorStateQueue_[0].front().vel;
+                motorStateQueue_[0].pop();
+            }
+            else
+                // RCLCPP_WARN(rclcpp::get_logger("WBHI read"), "Left wheel motor no new data!");
+
+                if (!motorStateQueue_[1].empty())
+                {
+                    hw_state_motors_[1].vel = latest_motors_state_[1].vel;
+                    motorStateQueue_[1].pop();
+                }
+                else
+                    // RCLCPP_WARN(rclcpp::get_logger("WBHI read"), "Right wheel motor no new data!");
+
+                    hw_state_joint_motor_ = jointMotorState_;
         // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
         //             "%.5f %.5f",
         //             hw_state_motors_[0].vel, hw_state_motors_[1].vel);
@@ -162,10 +183,33 @@ namespace wheeled_bipedal_hardware
             latest_imu_state_.gx = (static_cast<double>(pkg->gx)) * (M_PI / 180.0);
             latest_imu_state_.gy = (static_cast<double>(pkg->gy)) * (M_PI / 180.0);
             latest_imu_state_.gz = (static_cast<double>(pkg->gz)) * (M_PI / 180.0);
+
+            static double lastRecTimestamp = 0.0;
             double recTimestamp = static_cast<double>(pkg->timestamp) * 1e-6;
-            if (recTimestamp < latest_imu_state_.timestamp)
-                ++latest_imu_state_.timestampLoopCount; // 计数器溢出计数
-            latest_imu_state_.timestamp = recTimestamp + latest_imu_state_.timestampLoopCount * (4294967296.0 * 1e-6);
+            if (recTimestamp < lastRecTimestamp) // 收到的时间戳比上一次的早
+            {
+                RCLCPP_WARN(rclcpp::get_logger("WBHI"), "收到单片机时间戳%.6f小于上次%.6f", recTimestamp, lastRecTimestamp);
+                if (lastRecTimestamp >= (4294966000.0 * 1e-6)) // 上一次时间戳接近uint32最大值时认为计数器溢出
+                {
+                    // ++latest_imu_state_.timestampLoopCount; // 计数器溢出计数
+                    RCLCPP_WARN(rclcpp::get_logger("WBHI"), "单片机时间计数器溢出%d次!", ++latest_imu_state_.timestampLoopCount);
+                }
+                else // 其他情况，例如单片机reset
+                {
+                    latest_imu_state_.resetTimeStamp = latest_imu_state_.timestamp;
+                    RCLCPP_WARN(rclcpp::get_logger("WBHI"), "单片机reset, 记录时间戳:%.6f", latest_imu_state_.resetTimeStamp);
+                }
+            }
+            latest_imu_state_.timestamp = recTimestamp +
+                                          latest_imu_state_.timestampLoopCount * (4294967296.0 * 1e-6) +
+                                          latest_imu_state_.resetTimeStamp;
+            
+            lastRecTimestamp = recTimestamp;
+
+            if (imuStateQueue_.size() > 10)
+                imuStateQueue_.pop();
+            else
+                imuStateQueue_.push(latest_imu_state_);
             // RCLCPP_INFO(rclcpp::get_logger("WBHI"),
             //         "ax:%.3f \tay:%.3f \taz:%.3f \tgx:%.3f \tgy:%.3f \tgz:%.3f \ttime:%.6f\n",
             //         latest_imu_state_.ax, latest_imu_state_.ay, latest_imu_state_.az,
@@ -191,6 +235,11 @@ namespace wheeled_bipedal_hardware
             int index = static_cast<int>(pkg->motorID) - 5;
             // latest_motors_state_[index].pos = static_cast<double>(pkg->motorPos);
             latest_motors_state_[index].vel = static_cast<double>(pkg->motorVel);
+
+            if (motorStateQueue_[index].size() > 10)
+                motorStateQueue_[index].pop();
+            else
+                motorStateQueue_[index].push(latest_motors_state_[index]);
             // latest_motors_state_[index].tor = static_cast<double>(pkg->motorTor);
             // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
             //             "%.5f %.5f",
@@ -211,7 +260,7 @@ namespace wheeled_bipedal_hardware
         case 0x5C:
         {
             auto pkg = reinterpret_cast<const ReceivePackage3 *>(data);
-            jointMotorState = static_cast<double>(pkg->jointMotorState);
+            jointMotorState_ = static_cast<double>(pkg->jointMotorState);
             break;
         }
         default:

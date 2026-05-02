@@ -236,7 +236,7 @@ namespace wheeled_bipedal_controller
         }
         else
             lastImuTimestamp = imuStates_.timestamp;
-            
+
         if (dt == 0.0)
             return controller_interface::return_type::OK;
         // static int recValidCount = 0;
@@ -252,18 +252,23 @@ namespace wheeled_bipedal_controller
         INS_Task(imuStates_.lin_acc_x, imuStates_.lin_acc_y, imuStates_.lin_acc_z,
                  imuStates_.ang_vel_x, imuStates_.ang_vel_y, imuStates_.ang_vel_z,
                  dt);
-        // RCLCPP_INFO(get_node()->get_logger(), "R:%.3f P:%.3f Y:%.3f dt:%.6f", INS.Roll, INS.Pitch, INS.Yaw, dt);
+        RCLCPP_INFO(get_node()->get_logger(), "R:%.3f P:%.3f Y:%.3f dt:%.6f", INS.Roll, INS.Pitch, INS.Yaw, dt);
         // RCLCPP_INFO(get_node()->get_logger(), "tf:LF:%.2f LR:%.2f RF:%.2f RR:%.2f",
         //             lfMotorStates_.position * rad2deg,
         //             lrMotorStates_.position * rad2deg,
         //             rfMotorStates_.position * rad2deg,
         //             rrMotorStates_.position * rad2deg);
+        // command_interfaces_[0].set_value(0);
+        // command_interfaces_[1].set_value(0);
+        // command_interfaces_[2].set_value(0);
+        // command_interfaces_[3].set_value(0);
+        // command_interfaces_[4].set_value(0);
+        // command_interfaces_[5].set_value(0);
+        // return controller_interface::return_type::OK;
 
         if (time.seconds() - initTime <= 5.0)
             return controller_interface::return_type::OK;
-        // RCLCPP_INFO(rclcpp::get_logger("MotorCalib"), "motorPos: LF:%.4f LR:%.4f RF:%.4f RR:%.4f\n",
-        //             lfMotorStates_.wheelPos, lrMotorStates_.wheelPos,
-        //             rfMotorStates_.wheelPos, rrMotorStates_.wheelPos);
+
         // if (iKMotorPosTarget_.size() == 2)//运动学逆解测试
         // {
         //     kinematics::point wheelPosTarget = {iKMotorPosTarget_.at(0), iKMotorPosTarget_.at(1)};

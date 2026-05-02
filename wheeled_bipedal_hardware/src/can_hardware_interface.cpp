@@ -69,9 +69,16 @@ namespace can_hardware
         std::lock_guard<std::mutex> lock(state_mutex_);
         for (int i = 0; i < 4; ++i)
         {
-            hw_state_motors_[i].pos = motorStates_[i].pos;
-            hw_state_motors_[i].vel = motorStates_[i].vel;
-            hw_state_motors_[i].tor = motorStates_[i].tor;
+            if (motorStatesQueue_[i].empty())
+            {
+                // RCLCPP_WARN(rclcpp::get_logger("CAN read"), "Joint motor id:%d no new data!", i);
+                continue;
+            }
+
+            hw_state_motors_[i].pos = motorStatesQueue_[i].front().pos;
+            hw_state_motors_[i].vel = motorStatesQueue_[i].front().vel;
+            hw_state_motors_[i].tor = motorStatesQueue_[i].front().tor;
+            motorStatesQueue_[i].pop();
             // 电机 2 (i=1) 和电机 4 (i=3) 需要反转方向
             if (i == 1 || i == 3)
             {
@@ -170,6 +177,10 @@ namespace can_hardware
             motorStates_[index].vel = static_cast<double>(uint_to_float(velInt, motorStates_[index].velMin, motorStates_[index].velMax, 12));
             motorStates_[index].tor = static_cast<double>(uint_to_float(torInt, motorStates_[index].torMin, motorStates_[index].torMax, 12));
 
+            if (motorStatesQueue_[index].size() > 10)
+                motorStatesQueue_[index].pop();
+            else
+                motorStatesQueue_[index].push(motorStates_[index]);
             // RCLCPP_INFO(rclcpp::get_logger("CAN"), "pos:1:%.2f 2:%.2f 3:%.2f 4:%.2f",
             //             motorStates_[0].pos, motorStates_[1].pos, motorStates_[2].pos, motorStates_[3].pos);
             // RCLCPP_INFO(rclcpp::get_logger("CAN"), "vel:1:%.5f 2:%.5f 3:%.5f 4:%.5f",

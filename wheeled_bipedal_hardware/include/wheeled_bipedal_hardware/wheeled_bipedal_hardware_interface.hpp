@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <queue>
 #include "rclcpp/rclcpp.hpp"
 #include "hardware_interface/system_interface.hpp"
 #include "serial_core.hpp"
@@ -16,6 +17,7 @@ namespace wheeled_bipedal_hardware
         double gy = 0.0;
         double gz = 0.0;
         double timestamp = 0.0;
+        double resetTimeStamp = 0.0;
         int timestampLoopCount = 0; // 计数器溢出计数
     };
 
@@ -63,6 +65,9 @@ namespace wheeled_bipedal_hardware
 
         std::unordered_map<uint8_t, size_t> rec_pkg_header_map_; // 帧头到包长度的映射
 
+        std::queue<imuState> imuStateQueue_;
+        std::array<std::queue<motorState>, 2> motorStateQueue_;
+
         // 接收线程最新数据缓存
         imuState latest_imu_state_;
         double imuGyroOffset[3];
@@ -70,7 +75,7 @@ namespace wheeled_bipedal_hardware
         double accel_scale_ = 1.0;
         int useCalibration_ = 1;
         std::array<motorState, 2> latest_motors_state_{};
-        double jointMotorState = 0.0; // 关节电机: 0失能 非0使能
+        double jointMotorState_ = 0.0; // 关节电机: 0失能 非0使能
 
         // 状态和命令变量
         imuState hw_state_imu_;
