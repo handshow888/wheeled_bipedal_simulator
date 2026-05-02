@@ -252,7 +252,7 @@ namespace wheeled_bipedal_controller
         INS_Task(imuStates_.lin_acc_x, imuStates_.lin_acc_y, imuStates_.lin_acc_z,
                  imuStates_.ang_vel_x, imuStates_.ang_vel_y, imuStates_.ang_vel_z,
                  dt);
-        RCLCPP_INFO(get_node()->get_logger(), "R:%.3f P:%.3f Y:%.3f dt:%.6f", INS.Roll, INS.Pitch, INS.Yaw, dt);
+        // RCLCPP_INFO(get_node()->get_logger(), "R:%.3f P:%.3f Y:%.3f dt:%.6f", INS.Roll, INS.Pitch, INS.Yaw, dt);
         // RCLCPP_INFO(get_node()->get_logger(), "tf:LF:%.2f LR:%.2f RF:%.2f RR:%.2f",
         //             lfMotorStates_.position * rad2deg,
         //             lrMotorStates_.position * rad2deg,
@@ -318,7 +318,8 @@ namespace wheeled_bipedal_controller
         kinematics::fwdKinematicsResult rightFKResult = kinematics::forwardKinematics(rrMotorStates_.position, rfMotorStates_.position);
 
         static double leftThetaLast = 0.0, leftThetaDotLast = 0.0, leftThetaDotDotLast = 0.0;
-        double leftTheta = leftFKResult.phi0 + (INS.Pitch - pitchCompensation) * deg2rad - M_PI_2;
+        double leftTheta = leftFKResult.phi0 + (INS.Pitch - 0 * pitchCompensation) * deg2rad - M_PI_2;
+        leftTheta = lowPassFilter(leftTheta, leftThetaLast, 0.1);
         double leftThetaDot = (leftTheta - leftThetaLast) / dt;
         double leftThetaDotDot = (leftThetaDot - leftThetaDotLast) / dt;
         // leftThetaDot = lowPassFilter(leftThetaDot, leftThetaDotLast, 0.9);
@@ -335,7 +336,8 @@ namespace wheeled_bipedal_controller
         leftL0DotLast = leftL0Dot;
 
         static double rightThetaLast = 0.0, rightThetaDotLast = 0.0, rightThetaDotDotLast = 0.0;
-        double rightTheta = rightFKResult.phi0 + (INS.Pitch - pitchCompensation) * deg2rad - M_PI_2;
+        double rightTheta = rightFKResult.phi0 + (INS.Pitch - 0 * pitchCompensation) * deg2rad - M_PI_2;
+        rightTheta = lowPassFilter(rightTheta, rightThetaLast, 0.1);
         double rightThetaDot = (rightTheta - rightThetaLast) / dt;
         double rightThetaDotDot = (rightThetaDot - rightThetaDotLast) / dt;
         // rightThetaDot = lowPassFilter(rightThetaDot, rightThetaDotLast, 0.9);
@@ -356,13 +358,13 @@ namespace wheeled_bipedal_controller
             leftWheelx = 0.0;
             rightWheelx = 0.0;
         }
-        // RCLCPP_INFO(get_node()->get_logger(), "\nL:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f\nR:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f",
-        //             leftTheta, leftThetaDot,
-        //             leftWheelx, leftWheelVel,
-        //             -INS.Pitch * deg2rad, -INS.Gyro[1],
-        //             rightTheta * rad2deg, rightThetaDot * rad2deg,
-        //             rightWheelx, rightWheelVel,
-        //             -INS.Pitch, -INS.Gyro[1] * rad2deg);
+        RCLCPP_INFO(get_node()->get_logger(), "\nL:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f\nR:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f",
+                    leftTheta * rad2deg, leftThetaDot * rad2deg,
+                    leftWheelx, leftWheelVel,
+                    -INS.Pitch, -INS.Gyro[1] * rad2deg,
+                    rightTheta * rad2deg, rightThetaDot * rad2deg,
+                    rightWheelx, rightWheelVel,
+                    -INS.Pitch, -INS.Gyro[1] * rad2deg);
 
         // double robotLinearVel = (leftWheelVel + rightWheelVel) * 0.5;
         // double robotAngularVel = (rightWheelVel - leftWheelVel) / wheelSeparation;
@@ -373,7 +375,7 @@ namespace wheeled_bipedal_controller
         //             recCmdVel_.angular.z, robotAngularVel, INS.Gyro[2], angularVel_T);
 
         double rollCompensation = rollErrPID.compute(0.0, INS.Roll * deg2rad, dt);
-        if (abs((INS.Pitch - pitchCompensation)) > 10.0) // pitch倾角过大时不使用roll补偿
+        if (abs((INS.Pitch - 0 * pitchCompensation)) > 10.0) // pitch倾角过大时不使用roll补偿
             rollCompensation = rollErrPID.clear();
 
         // RCLCPP_INFO(get_node()->get_logger(), "(deg)R:%.3f P:%.3f Y:%.3f rollCompensation:%.3f", INS.Roll, INS.Pitch, INS.Yaw, rollCompensation);
@@ -383,7 +385,7 @@ namespace wheeled_bipedal_controller
         double rightVMC_F = rightLegLengthPID.compute(rightLegLengthCpstTarget, rightFKResult.L0, dt);
         double leftFeedforward_F = 0.0;
         double rightFeedforward_F = 0.0;
-        if (abs((INS.Pitch - pitchCompensation)) <= 10.0)
+        if (abs((INS.Pitch - 0 * pitchCompensation)) <= 10.0)
         {
             leftFeedforward_F = legLengthFeedforward_ / cos(leftTheta);
             rightFeedforward_F = legLengthFeedforward_ / cos(rightTheta);
@@ -404,35 +406,35 @@ namespace wheeled_bipedal_controller
         // 上一次循环的支持力解算结果
         static double leftF_NLast = 0.0, leftDDz_wLast = 0.0;
         static double rightF_NLast = 0.0, rightDDz_wLast = 0.0;
-        if ((leftDDz_wLast < -8.0 && rightDDz_wLast < -8.0) || (leftF_NLast < -0.0 && rightF_NLast < -0.0))
-        {
-            LQR::calKmat(leftFKResult.L0, true);
-            LQR::calKmat(rightFKResult.L0, true);
-            angularVel_T = 0.0;
-        }
-        else
-        {
-            LQR::calKmat(leftFKResult.L0);
-            LQR::calKmat(rightFKResult.L0);
-        }
+        // if ((leftDDz_wLast < -8.0 && rightDDz_wLast < -8.0) || (leftF_NLast < -0.0 && rightF_NLast < -0.0))
+        // {
+        //     LQR::calKmat(leftFKResult.L0, true);
+        //     LQR::calKmat(rightFKResult.L0, true);
+        //     angularVel_T = 0.0;
+        // }
+        // else
+        // {
+        LQR::calKmat(leftFKResult.L0);
+        LQR::calKmat(rightFKResult.L0);
+        // }
 
         // 左腿LQR
         double left_T_target = 0.0, left_Tp_target = 0.0;
-        LQR::cal_LQR_u(leftTheta,
+        LQR::cal_LQR_u(leftTheta - pitchCompensation * deg2rad,
                        leftThetaDot,
-                       0 * leftWheelx,
+                       1 * leftWheelx,
                        leftWheelVel - recCmdVel_.linear.x + recCmdVel_.angular.z * realWheelSeparation,
-                       -(INS.Pitch - pitchCompensation) * deg2rad,
+                       (-INS.Pitch - 0*pitchCompensation) * deg2rad,
                        -INS.Gyro[1],
                        left_T_target, left_Tp_target);
         // RCLCPP_INFO(get_node()->get_logger(), "leftLQR:T:%.2f Tp:%.2f", left_T_target, left_Tp_target);
         // 右腿LQR
         double right_T_target = 0.0, right_Tp_target = 0.0;
-        LQR::cal_LQR_u(rightTheta,
+        LQR::cal_LQR_u(rightTheta - pitchCompensation * deg2rad,
                        rightThetaDot,
-                       0 * rightWheelx,
+                       1 * rightWheelx,
                        rightWheelVel - recCmdVel_.linear.x - recCmdVel_.angular.z * realWheelSeparation,
-                       -(INS.Pitch - pitchCompensation) * deg2rad,
+                       (-INS.Pitch - 0*pitchCompensation) * deg2rad,
                        -INS.Gyro[1],
                        right_T_target,
                        right_Tp_target);
@@ -489,6 +491,12 @@ namespace wheeled_bipedal_controller
         command_interfaces_[3].set_value(rightVMC_T1);
         command_interfaces_[4].set_value(left_T_target - angularVel_T);
         command_interfaces_[5].set_value(right_T_target + angularVel_T);
+        // command_interfaces_[0].set_value(0);
+        // command_interfaces_[1].set_value(0);
+        // command_interfaces_[2].set_value(0);
+        // command_interfaces_[3].set_value(0);
+        // command_interfaces_[4].set_value(0);
+        // command_interfaces_[5].set_value(0);
 
         // RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f L0:%.2f phi0:%.2f",
         //             leftFKResult.wheelPos.x, leftFKResult.wheelPos.y,
