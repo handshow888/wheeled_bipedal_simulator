@@ -265,9 +265,20 @@ namespace wheeled_bipedal_controller
         // command_interfaces_[4].set_value(0);
         // command_interfaces_[5].set_value(0);
         // return controller_interface::return_type::OK;
-
-        if (time.seconds() - initTime <= 5.0)
+        const float waitSec = 5.0; // 启动前等待卡尔曼收敛的秒数
+        if (time.seconds() - initTime <= waitSec)
+        {
+            command_interfaces_[0].set_value(0);
+            command_interfaces_[1].set_value(0);
+            command_interfaces_[2].set_value(0);
+            command_interfaces_[3].set_value(0);
+            command_interfaces_[4].set_value(0);
+            command_interfaces_[5].set_value(0);
             return controller_interface::return_type::OK;
+        }
+        // command_interfaces_[4].set_value(-5);
+        // command_interfaces_[5].set_value(-5);
+        // return controller_interface::return_type::OK;
 
         // if (iKMotorPosTarget_.size() == 2)//运动学逆解测试
         // {
@@ -424,7 +435,7 @@ namespace wheeled_bipedal_controller
                        leftThetaDot,
                        1 * leftWheelx,
                        leftWheelVel - recCmdVel_.linear.x + recCmdVel_.angular.z * realWheelSeparation,
-                       (-INS.Pitch - 0*pitchCompensation) * deg2rad,
+                       (-INS.Pitch - 0 * pitchCompensation) * deg2rad,
                        -INS.Gyro[1],
                        left_T_target, left_Tp_target);
         // RCLCPP_INFO(get_node()->get_logger(), "leftLQR:T:%.2f Tp:%.2f", left_T_target, left_Tp_target);
@@ -434,7 +445,7 @@ namespace wheeled_bipedal_controller
                        rightThetaDot,
                        1 * rightWheelx,
                        rightWheelVel - recCmdVel_.linear.x - recCmdVel_.angular.z * realWheelSeparation,
-                       (-INS.Pitch - 0*pitchCompensation) * deg2rad,
+                       (-INS.Pitch - 0 * pitchCompensation) * deg2rad,
                        -INS.Gyro[1],
                        right_T_target,
                        right_Tp_target);
@@ -467,6 +478,8 @@ namespace wheeled_bipedal_controller
         leftVMC_T1 = clamp(leftVMC_T1, -joint_command_limit_, joint_command_limit_);
         rightVMC_T2 = clamp(rightVMC_T2, -joint_command_limit_, joint_command_limit_);
         rightVMC_T1 = clamp(rightVMC_T1, -joint_command_limit_, joint_command_limit_);
+        double final_left_T_target = clamp(left_T_target - angularVel_T, -joint_command_limit_, joint_command_limit_);
+        double final_right_T_target = clamp(right_T_target + angularVel_T, -joint_command_limit_, joint_command_limit_);
 
         std_msgs::msg::Float64MultiArray testMsg;
         // testMsg.data.push_back(INS.MotionAccel_n[2]);
@@ -478,19 +491,33 @@ namespace wheeled_bipedal_controller
         // testMsg.data.push_back(leftVMC_T1);
         // testMsg.data.push_back(rightVMC_T2);
         // testMsg.data.push_back(rightVMC_T1);
-        testMsg.data.push_back(left_T_target - angularVel_T);
-        testMsg.data.push_back(right_T_target + angularVel_T);
+        testMsg.data.push_back(final_left_T_target);
+        testMsg.data.push_back(final_right_T_target);
         testMsg.data.push_back(INS.Roll);
         testMsg.data.push_back(INS.Pitch);
         testMsg.data.push_back(INS.Yaw);
         testInfoPub_->publish(testMsg);
 
-        command_interfaces_[0].set_value(leftVMC_T2);
-        command_interfaces_[1].set_value(leftVMC_T1);
-        command_interfaces_[2].set_value(rightVMC_T2);
-        command_interfaces_[3].set_value(rightVMC_T1);
-        command_interfaces_[4].set_value(left_T_target - angularVel_T);
-        command_interfaces_[5].set_value(right_T_target + angularVel_T);
+        // 前0.1秒输出T会跳变导致轮毂电机重启
+        if (time.seconds() - initTime <= waitSec + 0.1)
+        {
+            command_interfaces_[0].set_value(0);
+            command_interfaces_[1].set_value(0);
+            command_interfaces_[2].set_value(0);
+            command_interfaces_[3].set_value(0);
+            command_interfaces_[4].set_value(0);
+            command_interfaces_[5].set_value(0);
+        }
+        else
+        {
+            command_interfaces_[0].set_value(leftVMC_T2);
+            command_interfaces_[1].set_value(leftVMC_T1);
+            command_interfaces_[2].set_value(rightVMC_T2);
+            command_interfaces_[3].set_value(rightVMC_T1);
+            command_interfaces_[4].set_value(final_left_T_target);
+            command_interfaces_[5].set_value(final_right_T_target);
+        }
+
         // command_interfaces_[0].set_value(0);
         // command_interfaces_[1].set_value(0);
         // command_interfaces_[2].set_value(0);
