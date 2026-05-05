@@ -203,13 +203,12 @@ namespace wheeled_bipedal_hardware
             latest_imu_state_.timestamp = recTimestamp +
                                           latest_imu_state_.timestampLoopCount * (4294967296.0 * 1e-6) +
                                           latest_imu_state_.resetTimeStamp;
-            
+
             lastRecTimestamp = recTimestamp;
 
             if (imuStateQueue_.size() > 10)
                 imuStateQueue_.pop();
-            else
-                imuStateQueue_.push(latest_imu_state_);
+            imuStateQueue_.push(latest_imu_state_);
             // RCLCPP_INFO(rclcpp::get_logger("WBHI"),
             //         "ax:%.3f \tay:%.3f \taz:%.3f \tgx:%.3f \tgy:%.3f \tgz:%.3f \ttime:%.6f\n",
             //         latest_imu_state_.ax, latest_imu_state_.ay, latest_imu_state_.az,
@@ -238,8 +237,7 @@ namespace wheeled_bipedal_hardware
 
             if (motorStateQueue_[index].size() > 10)
                 motorStateQueue_[index].pop();
-            else
-                motorStateQueue_[index].push(latest_motors_state_[index]);
+            motorStateQueue_[index].push(latest_motors_state_[index]);
             // latest_motors_state_[index].tor = static_cast<double>(pkg->motorTor);
             // RCLCPP_INFO(rclcpp::get_logger("WBHI read"),
             //             "%.5f %.5f",

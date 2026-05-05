@@ -49,7 +49,7 @@ namespace can_hardware
         {
             for (int i = 0; i < 4; ++i)
             {
-                send_can_frame(i + 1, stopCmd, true);
+                send_can_frame(i + 1, stopCmd, false);
             }
         }
         // 等待 tx 队列被硬件发出（给一点时间）
@@ -179,8 +179,8 @@ namespace can_hardware
 
             if (motorStatesQueue_[index].size() > 10)
                 motorStatesQueue_[index].pop();
-            else
-                motorStatesQueue_[index].push(motorStates_[index]);
+
+            motorStatesQueue_[index].push(motorStates_[index]);
             // RCLCPP_INFO(rclcpp::get_logger("CAN"), "pos:1:%.2f 2:%.2f 3:%.2f 4:%.2f",
             //             motorStates_[0].pos, motorStates_[1].pos, motorStates_[2].pos, motorStates_[3].pos);
             // RCLCPP_INFO(rclcpp::get_logger("CAN"), "vel:1:%.5f 2:%.5f 3:%.5f 4:%.5f",

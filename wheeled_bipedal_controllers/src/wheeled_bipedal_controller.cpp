@@ -369,13 +369,13 @@ namespace wheeled_bipedal_controller
             leftWheelx = 0.0;
             rightWheelx = 0.0;
         }
-        RCLCPP_INFO(get_node()->get_logger(), "\nL:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f\nR:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f",
-                    leftTheta * rad2deg, leftThetaDot * rad2deg,
-                    leftWheelx, leftWheelVel,
-                    -INS.Pitch, -INS.Gyro[1] * rad2deg,
-                    rightTheta * rad2deg, rightThetaDot * rad2deg,
-                    rightWheelx, rightWheelVel,
-                    -INS.Pitch, -INS.Gyro[1] * rad2deg);
+        // RCLCPP_INFO(get_node()->get_logger(), "\nL:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f\nR:theta:%.2f thetaDot:%.2f x:%.2f xDot:%.2f phi:%.2f phiDot:%.2f",
+        //             leftTheta * rad2deg, leftThetaDot * rad2deg,
+        //             leftWheelx, leftWheelVel,
+        //             -INS.Pitch, -INS.Gyro[1] * rad2deg,
+        //             rightTheta * rad2deg, rightThetaDot * rad2deg,
+        //             rightWheelx, rightWheelVel,
+        //             -INS.Pitch, -INS.Gyro[1] * rad2deg);
 
         // double robotLinearVel = (leftWheelVel + rightWheelVel) * 0.5;
         // double robotAngularVel = (rightWheelVel - leftWheelVel) / wheelSeparation;
@@ -516,14 +516,14 @@ namespace wheeled_bipedal_controller
             command_interfaces_[3].set_value(rightVMC_T1);
             command_interfaces_[4].set_value(final_left_T_target);
             command_interfaces_[5].set_value(final_right_T_target);
-        }
 
-        // command_interfaces_[0].set_value(0);
-        // command_interfaces_[1].set_value(0);
-        // command_interfaces_[2].set_value(0);
-        // command_interfaces_[3].set_value(0);
-        // command_interfaces_[4].set_value(0);
-        // command_interfaces_[5].set_value(0);
+            // command_interfaces_[0].set_value(0);
+            // command_interfaces_[1].set_value(0);
+            // command_interfaces_[2].set_value(0);
+            // command_interfaces_[3].set_value(0);
+            // command_interfaces_[4].set_value(0);
+            // command_interfaces_[5].set_value(0);
+        }
 
         // RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f L0:%.2f phi0:%.2f",
         //             leftFKResult.wheelPos.x, leftFKResult.wheelPos.y,

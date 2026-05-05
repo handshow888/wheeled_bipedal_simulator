@@ -155,7 +155,7 @@ void CanSerial::send_frame(const can_frame &frame)
         return;
     std::lock_guard<std::mutex> lock(tx_mutex_);
     // 限制队列大小，超出时丢弃最旧的帧（保证实时性）
-    const size_t max_queue = 64;
+    const size_t max_queue = 10;
     if (tx_queue_.size() >= max_queue)
     {
         tx_queue_.pop(); // 丢旧帧
