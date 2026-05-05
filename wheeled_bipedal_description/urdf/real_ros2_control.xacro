@@ -10,6 +10,7 @@
             <param name="port_name">/dev/wbserial</param>
             <param name="baud_rate">921600</param>
             <param name="useCalibration">1</param>
+            <param name="auto_cal_gyroOffset_samples">2000</param>
             <param name="imuGyroOffset_X">0.023176</param>
             <param name="imuGyroOffset_Y">0.005869</param>
             <param name="imuGyroOffset_Z">-0.049450</param>
@@ -57,6 +58,7 @@
     <ros2_control name="WheeledBipedalCAN" type="system">
         <hardware>
             <plugin>can_hardware/CanHardwareInterface</plugin>
+            <param name="can_device">can1</param>
         </hardware>
 
         <joint name="LF_hip_joint">

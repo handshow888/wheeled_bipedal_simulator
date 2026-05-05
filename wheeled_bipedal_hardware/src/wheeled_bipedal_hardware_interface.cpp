@@ -18,6 +18,7 @@ namespace wheeled_bipedal_hardware
         imuGyroOffset[0] = std::stod(info_.hardware_parameters["imuGyroOffset_X"]);
         imuGyroOffset[1] = std::stod(info_.hardware_parameters["imuGyroOffset_Y"]);
         imuGyroOffset[2] = std::stod(info_.hardware_parameters["imuGyroOffset_Z"]);
+        autoCalGyroOffsetSamples_ = std::stoi(info_.hardware_parameters["auto_cal_gyroOffset_samples"]);
 
         accel_scale_ = std::stod(info_.hardware_parameters["accel_scale"]);
 
@@ -38,6 +39,10 @@ namespace wheeled_bipedal_hardware
         }
 
         useCalibration_ = std::stoi(info_.hardware_parameters["useCalibration"]);
+        if (autoCalGyroOffsetSamples_ > 0)
+        {
+            RCLCPP_INFO(rclcpp::get_logger("WBHI"), "已启动自动校准imu陀螺仪零漂值,校准帧数:%d,请在校准前保持静止!", autoCalGyroOffsetSamples_);
+        }
 
         return hardware_interface::CallbackReturn::SUCCESS;
     }
@@ -76,6 +81,8 @@ namespace wheeled_bipedal_hardware
     {
         (void)time;
         (void)period;
+        if (!imuInitialed_)
+            return hardware_interface::return_type::OK;
         std::lock_guard<std::mutex> lock(state_mutex_);
         if (!imuStateQueue_.empty())
         {
@@ -183,6 +190,25 @@ namespace wheeled_bipedal_hardware
             latest_imu_state_.gx = (static_cast<double>(pkg->gx)) * (M_PI / 180.0);
             latest_imu_state_.gy = (static_cast<double>(pkg->gy)) * (M_PI / 180.0);
             latest_imu_state_.gz = (static_cast<double>(pkg->gz)) * (M_PI / 180.0);
+
+            static int imuRecCount = 0;
+            static double imuStateSum[3] = {0.0};
+            if (imuRecCount < autoCalGyroOffsetSamples_)
+            {
+                imuStateSum[0] += latest_imu_state_.gx;
+                imuStateSum[1] += latest_imu_state_.gy;
+                imuStateSum[2] += latest_imu_state_.gz;
+                if (++imuRecCount == autoCalGyroOffsetSamples_)
+                {
+                    imuGyroOffset[0] = imuStateSum[0] / autoCalGyroOffsetSamples_;
+                    imuGyroOffset[1] = imuStateSum[1] / autoCalGyroOffsetSamples_;
+                    imuGyroOffset[2] = imuStateSum[2] / autoCalGyroOffsetSamples_;
+                    RCLCPP_INFO(rclcpp::get_logger("WBHI"), "已校准imu陀螺仪零漂值,offset:[%.3f, %.3f, %.3f]",
+                                imuGyroOffset[0], imuGyroOffset[1], imuGyroOffset[2]);
+                }
+                break;
+            }
+            imuInitialed_ = true;
 
             static double lastRecTimestamp = 0.0;
             double recTimestamp = static_cast<double>(pkg->timestamp) * 1e-6;

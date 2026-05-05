@@ -55,6 +55,7 @@ namespace can_hardware
 
     private:
         std::unique_ptr<CanSerial> can_core_;
+        std::string can_device_ = "can0";
         std::mutex state_mutex_;
 
         std::array<std::queue<MIT>,4> motorStatesQueue_;

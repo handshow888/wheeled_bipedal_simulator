@@ -74,6 +74,8 @@ namespace wheeled_bipedal_hardware
         double calibration_matrix_[3][3];
         double accel_scale_ = 1.0;
         int useCalibration_ = 1;
+        int autoCalGyroOffsetSamples_ = 1000;
+        bool imuInitialed_ = false;
         std::array<motorState, 2> latest_motors_state_{};
         double jointMotorState_ = 0.0; // 关节电机: 0失能 非0使能
 

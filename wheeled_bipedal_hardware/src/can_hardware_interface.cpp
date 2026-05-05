@@ -17,7 +17,9 @@ namespace can_hardware
     {
         (void)pre;
         // 初始化CAN驱动
-        can_core_ = std::make_unique<CanSerial>("can0");
+        can_device_ = info_.hardware_parameters["can_device"];
+        RCLCPP_INFO(rclcpp::get_logger("CanHardwareInterface"), "Trying to open can device name: %s", can_device_.c_str());
+        can_core_ = std::make_unique<CanSerial>(can_device_);
         try
         {
             can_core_->init();
