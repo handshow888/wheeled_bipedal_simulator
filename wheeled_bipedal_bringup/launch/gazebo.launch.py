@@ -20,7 +20,7 @@ def generate_launch_description():
 
     declare_use_rviz_cmd = DeclareLaunchArgument(
         'use_rviz',
-        default_value='False',
+        default_value='True',
         description='Whether to start RVIZ')
     declare_rviz_config_file_cmd = DeclareLaunchArgument(
         'rviz_config_file',
@@ -28,9 +28,9 @@ def generate_launch_description():
         description='Full path to the RVIZ config file to use')  
     declare_world_cmd = DeclareLaunchArgument(
         'world',
-        default_value=os.path.join(bringup_pkg, 'worlds', 'exploration_world1.world'),
+        # default_value=os.path.join(bringup_pkg, 'worlds', 'exploration_world1.world'),
         # default_value=os.path.join(bringup_pkg, 'worlds', 'RMUC2024_world.world'),
-        # default_value="empty.world",
+        default_value="empty.world",
         description='Full path to the Gazebo world file to load')
 
     # 静态TF发布器
@@ -129,7 +129,6 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        wheeled_bipedal_controller_spawner,
         declare_use_rviz_cmd,
         declare_rviz_config_file_cmd,
         declare_world_cmd,
@@ -142,4 +141,5 @@ def generate_launch_description():
         imu_sensor_broadcaster_spawner,
         # diff_drive_controller_spawner,
         # effort_controller_spawner,
+        wheeled_bipedal_controller_spawner,
     ])
