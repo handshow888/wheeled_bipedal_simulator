@@ -145,14 +145,14 @@ Stephen Brawner (brawner@gmail.com)
     </visual>
     <collision>
       <!-- <origin
-    xyz="0 0 0"
-    rpy="0 0 0" /> -->
+        xyz="0 0 0"
+        rpy="0 0 0" /> -->
       <origin
         xyz="0.1231 -0.0078704 -0.00048416"
         rpy="0 0 0" />
       <geometry>
         <box size="0.3105 0.0147 0.0506" />
-        <mesh filename="package://wheeled_bipedal_description/meshes/LF_lower_link.STL" />
+        <!-- <mesh filename="package://wheeled_bipedal_description/meshes/LF_lower_link.STL" /> -->
       </geometry>
     </collision>
   </link>
@@ -253,7 +253,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <box size="0.2065 0.0355 0.0503" />
-        <mesh filename="package://wheeled_bipedal_description/meshes/LR_upper_link.STL" />
+        <!-- <mesh filename="package://wheeled_bipedal_description/meshes/LR_upper_link.STL" /> -->
       </geometry>
     </collision>
   </link>
@@ -303,7 +303,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <box size="0.3054 0.0148 0.0501" />
-        <mesh filename="package://wheeled_bipedal_description/meshes/LR_lower_link.STL" />
+        <!-- <mesh filename="package://wheeled_bipedal_description/meshes/LR_lower_link.STL" /> -->
       </geometry>
     </collision>
   </link>
@@ -346,8 +346,8 @@ Stephen Brawner (brawner@gmail.com)
     </visual>
     <collision>
       <!-- <origin
-      xyz="0 0 0"
-      rpy="0 0 0" /> -->
+        xyz="0 0 0"
+        rpy="0 0 0" /> -->
       <origin
         xyz="0.07 0.017442 0.00033347"
         rpy="0 0 0" />
