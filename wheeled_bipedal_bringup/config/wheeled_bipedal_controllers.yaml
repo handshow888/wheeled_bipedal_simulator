@@ -91,6 +91,7 @@ wheeled_bipedal_controller:
     K26poly: [0.5967, 5.1297, -14.2911, 13.5050]
 
     debug: true # 是否在每次update时获取动态参数
+    startWithPowerlessMode: true
 
     # PID 参数
     # 左腿

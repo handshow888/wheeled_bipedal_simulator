@@ -37,6 +37,7 @@ namespace wheeled_bipedal_controller
         LQR::K26poly = auto_declare<std::vector<double>>("K26poly", {});
 
         debug_ = auto_declare<bool>("debug", true);
+        powerlessMode_ = auto_declare<bool>("startWithPowerlessMode", false);
         rightLegSameWithLeft_ = auto_declare<bool>("right.same_with_left", true);
         leftLegLengthTarget_ = auto_declare<double>("left.leg_length", 0.25);
         rightLegLengthTarget_ = auto_declare<double>("right.leg_length", 0.25);
@@ -249,7 +250,9 @@ namespace wheeled_bipedal_controller
         // RCLCPP_INFO(get_node()->get_logger(), "R:%.3f P:%.3f Y:%.3f", INS.Roll, INS.Pitch, INS.Yaw);
 
         if (time.seconds() - initTime <= 2.0)
+        {
             return controller_interface::return_type::OK;
+        }
         // RCLCPP_INFO(rclcpp::get_logger("MotorCalib"), "motorPos: LF:%.4f LR:%.4f RF:%.4f RR:%.4f\n",
         //             lfMotorStates_.wheelPos, lrMotorStates_.wheelPos,
         //             rfMotorStates_.wheelPos, rrMotorStates_.wheelPos);
@@ -356,7 +359,11 @@ namespace wheeled_bipedal_controller
         //             -INS.Pitch, -INS.Gyro[1] * rad2deg);
 
         // double wheelLinearVel = (leftWheelVel + rightWheelVel) * 0.5;
-        double meanRobotVel = (leftRobotVel + rightRobotVel) * 0.5;
+        double meanRobotVel;
+        if (powerlessMode_)
+            meanRobotVel = (leftWheelVel + rightWheelVel) * 0.5;
+        else
+            meanRobotVel = (leftRobotVel + rightRobotVel) * 0.5;
         // 速度卡尔曼
         linearVelKF_.predict(dt);
         linearVelKF_.update(meanRobotVel, INS.MotionAccel_b[0]);
@@ -416,7 +423,7 @@ namespace wheeled_bipedal_controller
         // 上一次循环的支持力解算结果
         static double leftF_NLast = 0.0, leftDDz_wLast = 0.0;
         static double rightF_NLast = 0.0, rightDDz_wLast = 0.0;
-        if (leftDDz_wLast < -8.0 && rightDDz_wLast < -8.0)
+        if (powerlessMode_ || (leftDDz_wLast < -8.0 && rightDDz_wLast < -8.0))
         {
             LQR::calKmat(leftFKResult.L0, true);
             LQR::calKmat(rightFKResult.L0, true);
@@ -482,6 +489,37 @@ namespace wheeled_bipedal_controller
         finalTor[4] = clamp(left_T_target - angularVel_T, -maxTor, maxTor);
         finalTor[5] = clamp(right_T_target + angularVel_T, -maxTor, maxTor);
 
+        if (powerlessMode_)
+        {
+            leftThetaLast = 0.0;
+            // leftThetaDotLast = 0.0;
+            leftL0Last = 0.0;
+            // leftL0DotLast = 0.0;
+            rightThetaLast = 0.0;
+            // rightThetaDotLast = 0.0;
+            rightL0Last = 0.0;
+            // rightL0DotLast = 0.0;
+            leftF_NLast = 0.0;
+            leftDDz_wLast = 0.0;
+            rightF_NLast = 0.0;
+            rightDDz_wLast = 0.0;
+            leftLegLengthPID.clear();
+            rightLegLengthPID.clear();
+            deltaPhi0PID.clear();
+            angularVelPID.clear();
+            linearVelPID.clear();
+            rollErrPID.clear();
+            for (int i = 0; i < 6; ++i)
+            {
+                finalTor[i] = 0.0;
+            }
+        }
+
+        for (int i = 0; i < 6; ++i)
+        {
+            command_interfaces_[i].set_value(finalTor[i]); // 发送力矩
+        }
+
         std_msgs::msg::Float64MultiArray testMsg;
         testMsg.data.push_back(time.seconds());                  // 0 时间戳
         testMsg.data.push_back(INS.Pitch);                       // 机体pitch
@@ -503,14 +541,6 @@ namespace wheeled_bipedal_controller
         testMsg.data.push_back(finalTor[4]);                     // 左驱动轮力矩
         testMsg.data.push_back(finalTor[5]);                     // 右驱动轮力矩
         testInfoPub_->publish(testMsg);
-
-        command_interfaces_[0].set_value(finalTor[0]);
-        command_interfaces_[1].set_value(finalTor[1]);
-        command_interfaces_[2].set_value(finalTor[2]);
-        command_interfaces_[3].set_value(finalTor[3]);
-        command_interfaces_[4].set_value(finalTor[4]);
-        command_interfaces_[5].set_value(finalTor[5]);
-
         // RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f L0:%.2f phi0:%.2f",
         //             leftFKResult.wheelPos.x, leftFKResult.wheelPos.y,
         //             leftFKResult.L0, leftFKResult.phi0);
@@ -549,9 +579,12 @@ namespace wheeled_bipedal_controller
         // const int buttonYIdx = 4;
         const int buttonLBIdx = 6;
         const int buttonRBIdx = 7;
+        const int buttonBackIdx = 10;
+        // const int buttonStartIdx = 11;
 
         static uint8_t lastButtonA = 0;
         static uint8_t lastButtonB = 0;
+        static uint8_t lastButtonBack = 0;
         static int8_t lastArrowUD = 0;
         static int8_t lastArrowLR = 0;
         static bool spin = false;
@@ -619,6 +652,12 @@ namespace wheeled_bipedal_controller
             else if (msg->buttons.at(buttonRBIdx) == 0) // RB按下时锁定旋转速度
                 recCmdVel_.angular.z = lowPassFilter(msg->axes.at(2) * 5.0, recCmdVel_.angular.z, 0.1);
         }
+
+        if (lastButtonBack == 1 && msg->buttons.at(buttonBackIdx) == 0)
+        {
+            powerlessMode_ = !powerlessMode_;
+        }
+        lastButtonBack = msg->buttons.at(buttonBackIdx);
     }
 
     void WheeledBipedalController::loadStates()

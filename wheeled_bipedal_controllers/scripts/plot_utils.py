@@ -30,7 +30,7 @@ PLOT_CONFIGS = {
     'leg_length': {
         'title': 'Target and Actual Leg Length',
         'ylabel': 'Leg Length / m',
-        'ylim': (0.1, 0.4),
+        'ylim': (0.05, 0.4),
         'items': [
             ('left_leg_length_target', 'Left Target Length', '--'),
             ('left_leg_length_actual', 'Left Actual Length', '-'),
@@ -42,7 +42,8 @@ PLOT_CONFIGS = {
     'leg_phi0': {
         'title': 'Left and Right Leg Swing Angle',
         'ylabel': 'Swing Angle / deg',
-        'ylim': (60, 120),
+        'ylim': (40, 140),
+        # 'ylim': (60, 120),
         'items': [
             ('left_leg_phi0', 'Left Leg Swing Angle', '-'),
             ('right_leg_phi0', 'Right Leg Swing Angle', '-'),
@@ -52,7 +53,8 @@ PLOT_CONFIGS = {
     'pitch': {
         'title': 'Body Pitch Angle',
         'ylabel': 'Pitch / deg',
-        'ylim': (-10, 10),
+        'ylim': (-30, 30),
+        # 'ylim': (-10, 10),
         'items': [
             ('pitch', 'Pitch', '-'),
         ],

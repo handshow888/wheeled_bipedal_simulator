@@ -83,6 +83,7 @@ namespace wheeled_bipedal_controller
         PIDController deltaPhi0PID; // 防劈叉控制
 
         bool debug_; // 是否在update函数中实时获取动态参数
+        bool powerlessMode_;
 
         // ros2_control 参数
         std::vector<std::string> joint_names_, state_interface_names_;
