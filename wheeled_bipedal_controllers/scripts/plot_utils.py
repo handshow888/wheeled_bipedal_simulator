@@ -206,6 +206,11 @@ def plot_one_figure(data, time, csv_path, plot_name, start_time=None, end_time=N
     plt.ylabel(config['ylabel'])
     plt.title(config['title'])
 
+    # 固定横坐标起点为 0
+    if len(time) > 1:
+        plt.xlim(0, time[-1])
+    else:
+        plt.xlim(0, 1)
     # 固定纵坐标范围
     plt.ylim(config['ylim'])
 

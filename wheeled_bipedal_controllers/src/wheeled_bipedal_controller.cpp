@@ -62,6 +62,30 @@ namespace wheeled_bipedal_controller
         rollErrPID.setMaxOutput(legLengthMax);
         linearVelPID.setMaxOutput(1.0);
 
+        // 线速度卡尔曼滤波器
+        // 初始状态：速度 0，加速度 0
+        // 初始协方差可以根据你对初值的信任程度设置
+        linearVelKF_.init(0.0, 0.0, 1.0, 1.0);
+        // 过程噪声方差
+        // 越大表示越不相信匀加速度模型，滤波器对量测变化响应越快
+        linearVelKF_.setProcessNoiseVariance(auto_declare<double>("linear_vel_kf_Q_sigma2", 0.5));
+        // 量测噪声方差
+        // sigma_v2：速度测量噪声方差
+        // sigma_a2：加速度测量噪声方差
+        linearVelKF_.setMeasurementNoiseVariance(auto_declare<double>("linear_vel_kf_R_sigma_v2", 0.2),
+                                                 auto_declare<double>("linear_vel_kf_R_sigma_a2", 0.2));
+
+        // 角速度卡尔曼滤波器
+        // 初始角速度、角加速度
+        angularVelKF_.init(0.0, 0.0, 1.0, 10.0);
+        // 过程噪声方差
+        angularVelKF_.setProcessNoiseVariance(auto_declare<double>("angular_vel_kf_Q_sigma2", 0.5));
+        // 量测噪声方差
+        // 第一个是轮速解算 yaw 速度噪声
+        // 第二个是陀螺仪 z 轴角速度噪声
+        angularVelKF_.setMeasurementNoiseVariance(auto_declare<double>("angular_vel_kf_R_sigma_w2", 0.5),
+                                                  auto_declare<double>("angular_vel_kf_R_sigma_gz2", 0.5));
+
         if ((int)joint_names_.size() != 6)
         {
             RCLCPP_ERROR(get_node()->get_logger(), "expected 6 joints, but get %d joints", (int)joint_names_.size());
@@ -275,6 +299,14 @@ namespace wheeled_bipedal_controller
             rollErrPID.setParams(get_node()->get_parameter("roll_error_P").as_double(),
                                  get_node()->get_parameter("roll_error_I").as_double(),
                                  get_node()->get_parameter("roll_error_D").as_double());
+
+            linearVelKF_.setProcessNoiseVariance(auto_declare<double>("linear_vel_kf_Q_sigma2", 0.5));
+            linearVelKF_.setMeasurementNoiseVariance(auto_declare<double>("linear_vel_kf_R_sigma_v2", 0.2),
+                                                     auto_declare<double>("linear_vel_kf_R_sigma_a2", 0.2));
+
+            angularVelKF_.setProcessNoiseVariance(auto_declare<double>("angular_vel_kf_Q_sigma2", 0.5));
+            angularVelKF_.setMeasurementNoiseVariance(auto_declare<double>("angular_vel_kf_R_sigma_w2", 0.5),
+                                                      auto_declare<double>("angular_vel_kf_R_sigma_gz2", 0.5));
         }
 
         kinematics::fwdKinematicsResult leftFKResult = kinematics::forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);
@@ -293,6 +325,7 @@ namespace wheeled_bipedal_controller
         double leftL0DotDot = (leftL0Dot - leftL0DotLast) / dt;
         leftL0Last = leftFKResult.L0;
         leftL0DotLast = leftL0Dot;
+        double leftRobotVel = leftWheelVel + leftFKResult.L0 * leftThetaDot * cos(leftTheta) + leftL0Dot * sin(leftTheta); // vel kf
 
         static double rightThetaLast = 0.0, rightThetaDotLast = 0.0;
         double rightTheta = rightFKResult.phi0 + INS.Pitch * deg2rad - M_PI_2;
@@ -307,6 +340,7 @@ namespace wheeled_bipedal_controller
         double rightL0DotDot = (rightL0Dot - rightL0DotLast) / dt;
         rightL0Last = rightFKResult.L0;
         rightL0DotLast = rightL0Dot;
+        double rightRobotVel = rightWheelVel + rightFKResult.L0 * rightThetaDot * cos(rightTheta) + rightL0Dot * sin(rightTheta); // vel kf
 
         if (recCmdVel_.linear.x != 0.0 || recCmdVel_.angular.z != 0.0)
         {
@@ -320,10 +354,21 @@ namespace wheeled_bipedal_controller
         //             rightTheta * rad2deg, rightThetaDot * rad2deg,
         //             rightWheelx, rightWheelVel,
         //             -INS.Pitch, -INS.Gyro[1] * rad2deg);
-        double wheelLinearVel = (leftWheelVel + rightWheelVel) * 0.5;
+
+        // double wheelLinearVel = (leftWheelVel + rightWheelVel) * 0.5;
+        double meanRobotVel = (leftRobotVel + rightRobotVel) * 0.5;
+        // 速度卡尔曼
+        linearVelKF_.predict(dt);
+        linearVelKF_.update(meanRobotVel, INS.MotionAccel_b[0]);
         static double lastRobotLinearVel = 0.0, lastRobotAngularVel = 0.0;
-        double robotLinearVel = lowPassFilter(wheelLinearVel, lastRobotLinearVel, 1.0);
+        double robotLinearVel = lowPassFilter(linearVelKF_.velocity(), lastRobotLinearVel, 1.0);
         lastRobotLinearVel = robotLinearVel;
+
+        // 角速度卡尔曼
+        // 考虑腿长变化后的真实轮距
+        double realWheelSeparation = sqrt((rightFKResult.L0 - leftFKResult.L0) * (rightFKResult.L0 - leftFKResult.L0) + wheelSeparation * wheelSeparation);
+        angularVelKF_.predict(dt);
+        angularVelKF_.update((rightWheelVel - leftWheelVel) / realWheelSeparation, INS.Gyro[2]);
         // double robotAngularVel = (rightWheelVel - leftWheelVel) / wheelSeparation;
         double robotAngularVel = lowPassFilter(INS.Gyro[2], lastRobotAngularVel, 0.5);
         lastRobotAngularVel = robotAngularVel;
@@ -367,9 +412,6 @@ namespace wheeled_bipedal_controller
         double deltaPhi0 = rightFKResult.phi0 - leftFKResult.phi0;
         double deltaPhi0_Tp = deltaPhi0PID.compute(0.0, deltaPhi0, dt);
         // RCLCPP_INFO(get_node()->get_logger(), "deltaPhi0:%.3f deltaPhi0_Tp:%.3f", deltaPhi0, deltaPhi0_Tp);
-
-        // 考虑腿长变化后的真实轮距
-        double realWheelSeparation = sqrt((rightFKResult.L0 - leftFKResult.L0) * (rightFKResult.L0 - leftFKResult.L0) + wheelSeparation * wheelSeparation);
 
         // 上一次循环的支持力解算结果
         static double leftF_NLast = 0.0, leftDDz_wLast = 0.0;
@@ -441,25 +483,25 @@ namespace wheeled_bipedal_controller
         finalTor[5] = clamp(right_T_target + angularVel_T, -maxTor, maxTor);
 
         std_msgs::msg::Float64MultiArray testMsg;
-        testMsg.data.push_back(time.seconds());                // 0 时间戳
-        testMsg.data.push_back(INS.Pitch);                     // 机体pitch
-        testMsg.data.push_back(INS.Roll);                      // 机体roll
-        testMsg.data.push_back(leftLegLengthCpstTarget);       // 左腿目标腿长
-        testMsg.data.push_back(rightLegLengthCpstTarget);      // 右腿目标腿长
-        testMsg.data.push_back(leftFKResult.L0);               // 5 左腿实际腿长
-        testMsg.data.push_back(rightFKResult.L0);              // 右腿实际腿长
-        testMsg.data.push_back(leftFKResult.phi0 * rad2deg);   // 左腿摆角
-        testMsg.data.push_back(rightFKResult.phi0 * rad2deg);  // 右腿摆角
-        testMsg.data.push_back(recCmdVel_.linear.x);           // 目标线速度
-        testMsg.data.push_back(robotLinearVel);                // 10 实际线速度
-        testMsg.data.push_back(recCmdVel_.angular.z);          // 目标角速度
-        testMsg.data.push_back(robotAngularVel);               // 实际角速度
-        testMsg.data.push_back(finalTor[0]);                    // 左前关节电机力矩
-        testMsg.data.push_back(finalTor[1]);                    // 左后关节电机力矩
-        testMsg.data.push_back(finalTor[2]);                   // 15 右前关节电机力矩
-        testMsg.data.push_back(finalTor[3]);                   // 右后关节电机力矩
-        testMsg.data.push_back(finalTor[4]);  // 左驱动轮力矩
-        testMsg.data.push_back(finalTor[5]); // 右驱动轮力矩
+        testMsg.data.push_back(time.seconds());                  // 0 时间戳
+        testMsg.data.push_back(INS.Pitch);                       // 机体pitch
+        testMsg.data.push_back(INS.Roll);                        // 机体roll
+        testMsg.data.push_back(leftLegLengthCpstTarget);         // 左腿目标腿长
+        testMsg.data.push_back(rightLegLengthCpstTarget);        // 右腿目标腿长
+        testMsg.data.push_back(leftFKResult.L0);                 // 5 左腿实际腿长
+        testMsg.data.push_back(rightFKResult.L0);                // 右腿实际腿长
+        testMsg.data.push_back(leftFKResult.phi0 * rad2deg);     // 左腿摆角
+        testMsg.data.push_back(rightFKResult.phi0 * rad2deg);    // 右腿摆角
+        testMsg.data.push_back(recCmdVel_.linear.x);             // 目标线速度
+        testMsg.data.push_back(robotLinearVel);                  // 10 实际线速度
+        testMsg.data.push_back(recCmdVel_.angular.z);            // 目标角速度
+        testMsg.data.push_back(angularVelKF_.angularVelocity()); // 实际角速度
+        testMsg.data.push_back(finalTor[0]);                     // 左前关节电机力矩
+        testMsg.data.push_back(finalTor[1]);                     // 左后关节电机力矩
+        testMsg.data.push_back(finalTor[2]);                     // 15 右前关节电机力矩
+        testMsg.data.push_back(finalTor[3]);                     // 右后关节电机力矩
+        testMsg.data.push_back(finalTor[4]);                     // 左驱动轮力矩
+        testMsg.data.push_back(finalTor[5]);                     // 右驱动轮力矩
         testInfoPub_->publish(testMsg);
 
         command_interfaces_[0].set_value(finalTor[0]);

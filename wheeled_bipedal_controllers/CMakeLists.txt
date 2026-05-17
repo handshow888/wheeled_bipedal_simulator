@@ -32,6 +32,8 @@ add_library(${PROJECT_NAME} SHARED
   src/VMC.cpp
   src/structural_params.cpp
   src/pid_controller.cpp
+  src/velocityKF.cpp
+  src/angularVelocityKF.cpp
 )
 
 ament_target_dependencies(${PROJECT_NAME}

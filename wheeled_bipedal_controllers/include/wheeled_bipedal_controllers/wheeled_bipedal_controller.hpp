@@ -16,6 +16,8 @@
 #include "wheeled_bipedal_controllers/VMC.h"
 #include "wheeled_bipedal_controllers/structural_params.h"
 #include "wheeled_bipedal_controllers/pid_controller.hpp"
+#include "wheeled_bipedal_controllers/velocityKF.hpp"
+#include "wheeled_bipedal_controllers/angularVelocityKF.hpp"
 
 namespace wheeled_bipedal_controller
 {
@@ -65,6 +67,8 @@ namespace wheeled_bipedal_controller
 
         PIDController angularVelPID; // 角速度控制
         PIDController linearVelPID;
+        VelocityAccelerationKF linearVelKF_;
+        AngularVelocityKF angularVelKF_;
 
         // 腿高控制
         PIDController leftLegLengthPID, rightLegLengthPID;

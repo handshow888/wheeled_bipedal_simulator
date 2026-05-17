@@ -117,9 +117,17 @@ wheeled_bipedal_controller:
     angular_vel_I: 7.0
     angular_vel_D: 0.0001
     # 线速度PID
-    linear_vel_P: 0.5
-    linear_vel_I: 3.0
+    linear_vel_P: 1.0
+    linear_vel_I: 2.0
     linear_vel_D: 0.0
+    # 速度解算卡尔曼
+    linear_vel_kf_Q_sigma2: 0.75 #过程噪声
+    linear_vel_kf_R_sigma_v2: 0.2 #速度测量噪声方差
+    linear_vel_kf_R_sigma_a2: 0.2 #加速度测量噪声方差
+
+    angular_vel_kf_Q_sigma2: 1000.0 #过程噪声
+    angular_vel_kf_R_sigma_w2: 0.5 #轮速解算 yaw 角速度的噪声方差
+    angular_vel_kf_R_sigma_gz2: 0.5 #陀螺仪 z 轴角速度的噪声方差
 
     roll_error_P: 3.0
     roll_error_I: 5.0
