@@ -61,7 +61,7 @@ namespace wheeled_bipedal_controller
                              auto_declare<double>("roll_error_I", 0.0),
                              auto_declare<double>("roll_error_D", 0.0));
         rollErrPID.setMaxOutput(legLengthMax);
-        linearVelPID.setMaxOutput(1.0);
+        linearVelPID.setMaxOutput(2.0);
 
         // 线速度卡尔曼滤波器
         // 初始状态：速度 0，加速度 0
@@ -303,13 +303,13 @@ namespace wheeled_bipedal_controller
                                  get_node()->get_parameter("roll_error_I").as_double(),
                                  get_node()->get_parameter("roll_error_D").as_double());
 
-            linearVelKF_.setProcessNoiseVariance(auto_declare<double>("linear_vel_kf_Q_sigma2", 0.5));
-            linearVelKF_.setMeasurementNoiseVariance(auto_declare<double>("linear_vel_kf_R_sigma_v2", 0.2),
-                                                     auto_declare<double>("linear_vel_kf_R_sigma_a2", 0.2));
+            linearVelKF_.setProcessNoiseVariance(get_node()->get_parameter("linear_vel_kf_Q_sigma2").as_double());
+            linearVelKF_.setMeasurementNoiseVariance(get_node()->get_parameter("linear_vel_kf_R_sigma_v2").as_double(),
+                                                     get_node()->get_parameter("linear_vel_kf_R_sigma_a2").as_double());
 
-            angularVelKF_.setProcessNoiseVariance(auto_declare<double>("angular_vel_kf_Q_sigma2", 0.5));
-            angularVelKF_.setMeasurementNoiseVariance(auto_declare<double>("angular_vel_kf_R_sigma_w2", 0.5),
-                                                      auto_declare<double>("angular_vel_kf_R_sigma_gz2", 0.5));
+            angularVelKF_.setProcessNoiseVariance(get_node()->get_parameter("angular_vel_kf_Q_sigma2").as_double());
+            angularVelKF_.setMeasurementNoiseVariance(get_node()->get_parameter("angular_vel_kf_R_sigma_w2").as_double(),
+                                                      get_node()->get_parameter("angular_vel_kf_R_sigma_gz2").as_double());
         }
 
         kinematics::fwdKinematicsResult leftFKResult = kinematics::forwardKinematics(lrMotorStates_.position, lfMotorStates_.position);

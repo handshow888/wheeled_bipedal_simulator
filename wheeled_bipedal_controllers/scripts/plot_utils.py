@@ -26,6 +26,8 @@ plt.rcParams['xtick.labelsize'] = 15    # x轴刻度字体
 plt.rcParams['ytick.labelsize'] = 15    # y轴刻度字体
 plt.rcParams['legend.fontsize'] = 20    # 图例字体
 
+plot_linewidth = 2.0
+
 PLOT_CONFIGS = {
     'leg_length': {
         'title': 'Target and Actual Leg Length',
@@ -33,8 +35,8 @@ PLOT_CONFIGS = {
         'ylim': (0.05, 0.4),
         'items': [
             ('left_leg_length_target', 'Left Target Length', '--'),
-            ('left_leg_length_actual', 'Left Actual Length', '-'),
             ('right_leg_length_target', 'Right Target Length', '--'),
+            ('left_leg_length_actual', 'Left Actual Length', '-'),
             ('right_leg_length_actual', 'Right Actual Length', '-'),
         ],
     },
@@ -202,7 +204,7 @@ def plot_one_figure(data, time, csv_path, plot_name, start_time=None, end_time=N
 
     for column_name, label, linestyle in config['items']:
         y = data[column_name].to_numpy(dtype=float)
-        plt.plot(time, y, label=label, linestyle=linestyle, linewidth=5.0)
+        plt.plot(time, y, label=label, linestyle=linestyle, linewidth=plot_linewidth)
 
     plt.xlabel('Time / s')
     plt.ylabel(config['ylabel'])
