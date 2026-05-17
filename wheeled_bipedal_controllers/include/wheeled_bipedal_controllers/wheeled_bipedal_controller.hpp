@@ -64,6 +64,7 @@ namespace wheeled_bipedal_controller
         geometry_msgs::msg::Twist recCmdVel_;
 
         PIDController angularVelPID; // 角速度控制
+        PIDController linearVelPID;
 
         // 腿高控制
         PIDController leftLegLengthPID, rightLegLengthPID;
@@ -73,6 +74,7 @@ namespace wheeled_bipedal_controller
 
         // roll角误差控制
         PIDController rollErrPID;
+        double rollErrTolerance_;
 
         PIDController deltaPhi0PID; // 防劈叉控制
 

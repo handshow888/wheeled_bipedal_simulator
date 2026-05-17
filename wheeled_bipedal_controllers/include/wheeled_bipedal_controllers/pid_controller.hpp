@@ -10,11 +10,14 @@ private:
     double previousError_; // 上一次的误差
     double integral_;       // 误差的积分
     bool setParams_;
+    double maxOutput_;
+    bool setMaxOutput_;
 public:
     PIDController();
     PIDController(double p, double i, double d);
 
     void setParams(double p, double i, double d);
+    void setMaxOutput(double value);
 
     double compute(double targetValue, double nowValue, double dt);
 

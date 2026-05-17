@@ -95,9 +95,9 @@ wheeled_bipedal_controller:
     # PID 参数
     # 左腿
     left:
-      leg_length_P: 150.0
-      leg_length_I: 5.0
-      leg_length_D: 30.0
+      leg_length_P: 200.0
+      leg_length_I: 15.0
+      leg_length_D: 10.0
       leg_length: 0.20 # 初始腿长
     # 右腿
     right:
@@ -116,10 +116,15 @@ wheeled_bipedal_controller:
     angular_vel_P: 2.0
     angular_vel_I: 7.0
     angular_vel_D: 0.0001
+    # 线速度PID
+    linear_vel_P: 0.5
+    linear_vel_I: 3.0
+    linear_vel_D: 0.0
 
-    roll_error_P: 0.0
-    roll_error_I: 10.0
+    roll_error_P: 3.0
+    roll_error_I: 5.0
     roll_error_D: 0.0001
+    roll_error_tolerance: 0.05
 
 diff_drive_controller:
   ros__parameters:

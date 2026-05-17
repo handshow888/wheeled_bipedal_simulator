@@ -25,16 +25,38 @@ void PIDController::setParams(double p, double i, double d)
     setParams_ = true;
 }
 
+void PIDController::setMaxOutput(double value)
+{
+    if (value < 0)
+        value = -value;
+    maxOutput_ = value;
+    setMaxOutput_ = true;
+}
+
 double PIDController::compute(double targetValue, double nowValue, double dt)
 {
     if (!setParams_)
         return 0.0;
 
-    double error = targetValue - nowValue;                               // 计算当前误差
-    integral_ += error * dt;                                             // 更新积分项
+    double error = targetValue - nowValue; // 计算当前误差
+    integral_ += error * dt;               // 更新积分项
+    if (setMaxOutput_)
+    {
+        if (integral_ > maxOutput_)
+            integral_ = maxOutput_;
+        else if (integral_ < -maxOutput_)
+            integral_ = -maxOutput_;
+    }
     double derivative = (error - previousError_) / dt;                   // 计算微分项
     double output = (P_ * error) + (I_ * integral_) + (D_ * derivative); // PID公式计算输出
-    previousError_ = error;                                              // 更新上一次误差
+    if (setMaxOutput_)
+    {
+        if (output > maxOutput_)
+            output = maxOutput_;
+        else if (output < -maxOutput_)
+            output = -maxOutput_;
+    }
+    previousError_ = error; // 更新上一次误差
     return output;
 }
 

@@ -22,6 +22,7 @@ namespace wheeled_bipedal_controller
         wheelMass = auto_declare<double>("wheel_mass", 0.85254);
         legLengthMin = auto_declare<double>("leg_length_min", 0.15);
         legLengthMax = auto_declare<double>("leg_length_max", 0.37);
+        rollErrTolerance_ = auto_declare<double>("roll_error_tolerance", 0.05);
         LQR::K11poly = auto_declare<std::vector<double>>("K11poly", {});
         LQR::K12poly = auto_declare<std::vector<double>>("K12poly", {});
         LQR::K13poly = auto_declare<std::vector<double>>("K13poly", {});
@@ -52,9 +53,14 @@ namespace wheeled_bipedal_controller
         angularVelPID.setParams(auto_declare<double>("angular_vel_P", 0.0),
                                 auto_declare<double>("angular_vel_I", 0.0),
                                 auto_declare<double>("angular_vel_D", 0.0));
+        linearVelPID.setParams(auto_declare<double>("linear_vel_P", 0.0),
+                               auto_declare<double>("linear_vel_I", 0.0),
+                               auto_declare<double>("linear_vel_D", 0.0));
         rollErrPID.setParams(auto_declare<double>("roll_error_P", 0.0),
                              auto_declare<double>("roll_error_I", 0.0),
                              auto_declare<double>("roll_error_D", 0.0));
+        rollErrPID.setMaxOutput(legLengthMax);
+        linearVelPID.setMaxOutput(1.0);
 
         if ((int)joint_names_.size() != 6)
         {
@@ -263,6 +269,9 @@ namespace wheeled_bipedal_controller
             angularVelPID.setParams(get_node()->get_parameter("angular_vel_P").as_double(),
                                     get_node()->get_parameter("angular_vel_I").as_double(),
                                     get_node()->get_parameter("angular_vel_D").as_double());
+            linearVelPID.setParams(get_node()->get_parameter("linear_vel_P").as_double(),
+                                   get_node()->get_parameter("linear_vel_I").as_double(),
+                                   get_node()->get_parameter("linear_vel_D").as_double());
             rollErrPID.setParams(get_node()->get_parameter("roll_error_P").as_double(),
                                  get_node()->get_parameter("roll_error_I").as_double(),
                                  get_node()->get_parameter("roll_error_D").as_double());
@@ -311,16 +320,30 @@ namespace wheeled_bipedal_controller
         //             rightTheta * rad2deg, rightThetaDot * rad2deg,
         //             rightWheelx, rightWheelVel,
         //             -INS.Pitch, -INS.Gyro[1] * rad2deg);
-
-        // double robotLinearVel = (leftWheelVel + rightWheelVel) * 0.5;
+        double wheelLinearVel = (leftWheelVel + rightWheelVel) * 0.5;
+        static double lastRobotLinearVel = 0.0, lastRobotAngularVel = 0.0;
+        double robotLinearVel = lowPassFilter(wheelLinearVel, lastRobotLinearVel, 1.0);
+        lastRobotLinearVel = robotLinearVel;
         // double robotAngularVel = (rightWheelVel - leftWheelVel) / wheelSeparation;
-        double robotAngularVel = INS.Gyro[2];
+        double robotAngularVel = lowPassFilter(INS.Gyro[2], lastRobotAngularVel, 0.5);
+        lastRobotAngularVel = robotAngularVel;
 
         double angularVel_T = angularVelPID.compute(recCmdVel_.angular.z, robotAngularVel, dt);
         // RCLCPP_INFO(get_node()->get_logger(), "angularTarget:%.3f now:%.3f GyroZ:%.3f T:%.3f",
         //             recCmdVel_.angular.z, robotAngularVel, INS.Gyro[2], angularVel_T);
 
-        double rollCompensation = rollErrPID.compute(0.0, INS.Roll * deg2rad, dt);
+        double linearVelPIDOutput = 0.0;
+        if (recCmdVel_.linear.x != 0.0)
+        {
+            linearVelPIDOutput = linearVelPID.compute(recCmdVel_.linear.x, robotLinearVel, dt);
+        }
+        else
+            linearVelPID.clear();
+
+        double rollError = INS.Roll * deg2rad;
+        if (abs(rollError) <= rollErrTolerance_)
+            rollError = 0.0;
+        double rollCompensation = rollErrPID.compute(0.0, rollError, dt);
         if (abs(INS.Pitch) > 10.0) // pitch倾角过大时不使用roll补偿
             rollCompensation = rollErrPID.clear();
 
@@ -368,7 +391,7 @@ namespace wheeled_bipedal_controller
         LQR::cal_LQR_u(leftTheta,
                        leftThetaDot,
                        0 * leftWheelx,
-                       leftWheelVel - recCmdVel_.linear.x + recCmdVel_.angular.z * realWheelSeparation,
+                       leftWheelVel - linearVelPIDOutput + recCmdVel_.angular.z * realWheelSeparation,
                        -INS.Pitch * deg2rad,
                        -INS.Gyro[1],
                        left_T_target, left_Tp_target);
@@ -378,7 +401,7 @@ namespace wheeled_bipedal_controller
         LQR::cal_LQR_u(rightTheta,
                        rightThetaDot,
                        0 * rightWheelx,
-                       rightWheelVel - recCmdVel_.linear.x - recCmdVel_.angular.z * realWheelSeparation,
+                       rightWheelVel - linearVelPIDOutput - recCmdVel_.angular.z * realWheelSeparation,
                        -INS.Pitch * deg2rad,
                        -INS.Gyro[1],
                        right_T_target,
@@ -408,20 +431,43 @@ namespace wheeled_bipedal_controller
         rightF_NLast = rightF_N;
         rightDDz_wLast = rightDDz_w;
 
+        const double maxTor = 10.0;
+        double finalTor[6];
+        finalTor[0] = clamp(leftVMC_T2, -maxTor, maxTor);
+        finalTor[1] = clamp(leftVMC_T1, -maxTor, maxTor);
+        finalTor[2] = clamp(rightVMC_T2, -maxTor, maxTor);
+        finalTor[3] = clamp(rightVMC_T1, -maxTor, maxTor);
+        finalTor[4] = clamp(left_T_target - angularVel_T, -maxTor, maxTor);
+        finalTor[5] = clamp(right_T_target + angularVel_T, -maxTor, maxTor);
+
         std_msgs::msg::Float64MultiArray testMsg;
-        testMsg.data.push_back(INS.MotionAccel_n[2]);
-        testMsg.data.push_back(leftF_N);
-        testMsg.data.push_back(rightF_N);
-        testMsg.data.push_back(leftDDz_w);
-        testMsg.data.push_back(rightDDz_w);
+        testMsg.data.push_back(time.seconds());                // 0 时间戳
+        testMsg.data.push_back(INS.Pitch);                     // 机体pitch
+        testMsg.data.push_back(INS.Roll);                      // 机体roll
+        testMsg.data.push_back(leftLegLengthCpstTarget);       // 左腿目标腿长
+        testMsg.data.push_back(rightLegLengthCpstTarget);      // 右腿目标腿长
+        testMsg.data.push_back(leftFKResult.L0);               // 5 左腿实际腿长
+        testMsg.data.push_back(rightFKResult.L0);              // 右腿实际腿长
+        testMsg.data.push_back(leftFKResult.phi0 * rad2deg);   // 左腿摆角
+        testMsg.data.push_back(rightFKResult.phi0 * rad2deg);  // 右腿摆角
+        testMsg.data.push_back(recCmdVel_.linear.x);           // 目标线速度
+        testMsg.data.push_back(robotLinearVel);                // 10 实际线速度
+        testMsg.data.push_back(recCmdVel_.angular.z);          // 目标角速度
+        testMsg.data.push_back(robotAngularVel);               // 实际角速度
+        testMsg.data.push_back(finalTor[0]);                    // 左前关节电机力矩
+        testMsg.data.push_back(finalTor[1]);                    // 左后关节电机力矩
+        testMsg.data.push_back(finalTor[2]);                   // 15 右前关节电机力矩
+        testMsg.data.push_back(finalTor[3]);                   // 右后关节电机力矩
+        testMsg.data.push_back(finalTor[4]);  // 左驱动轮力矩
+        testMsg.data.push_back(finalTor[5]); // 右驱动轮力矩
         testInfoPub_->publish(testMsg);
 
-        command_interfaces_[0].set_value(leftVMC_T2);
-        command_interfaces_[1].set_value(leftVMC_T1);
-        command_interfaces_[2].set_value(rightVMC_T2);
-        command_interfaces_[3].set_value(rightVMC_T1);
-        command_interfaces_[4].set_value(left_T_target - angularVel_T);
-        command_interfaces_[5].set_value(right_T_target + angularVel_T);
+        command_interfaces_[0].set_value(finalTor[0]);
+        command_interfaces_[1].set_value(finalTor[1]);
+        command_interfaces_[2].set_value(finalTor[2]);
+        command_interfaces_[3].set_value(finalTor[3]);
+        command_interfaces_[4].set_value(finalTor[4]);
+        command_interfaces_[5].set_value(finalTor[5]);
 
         // RCLCPP_INFO(get_node()->get_logger(), "LW x: %.2f y:%.2f L0:%.2f phi0:%.2f",
         //             leftFKResult.wheelPos.x, leftFKResult.wheelPos.y,
