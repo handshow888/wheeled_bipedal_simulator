@@ -48,6 +48,12 @@ class TestInfoRecorder(Node):
             'target_angular_vel',
             'actual_angular_vel',
 
+            'left_support_force',
+            'right_support_force',
+
+            'left_wheel_acceleration',
+            'right_wheel_acceleration',
+
             'left_front_joint_torque',
             'left_rear_joint_torque',
             'right_front_joint_torque',

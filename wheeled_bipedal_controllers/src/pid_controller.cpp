@@ -37,16 +37,8 @@ double PIDController::compute(double targetValue, double nowValue, double dt)
 {
     if (!setParams_)
         return 0.0;
-
-    double error = targetValue - nowValue; // 计算当前误差
-    integral_ += error * dt;               // 更新积分项
-    if (setMaxOutput_)
-    {
-        if (integral_ > maxOutput_)
-            integral_ = maxOutput_;
-        else if (integral_ < -maxOutput_)
-            integral_ = -maxOutput_;
-    }
+    double error = targetValue - nowValue;                               // 计算当前误差
+    integral_ += error * dt;                                             // 更新积分项
     double derivative = (error - previousError_) / dt;                   // 计算微分项
     double output = (P_ * error) + (I_ * integral_) + (D_ * derivative); // PID公式计算输出
     if (setMaxOutput_)

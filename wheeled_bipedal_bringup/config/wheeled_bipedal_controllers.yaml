@@ -91,7 +91,7 @@ wheeled_bipedal_controller:
     K26poly: [0.5967, 5.1297, -14.2911, 13.5050]
 
     debug: true # 是否在每次update时获取动态参数
-    startWithPowerlessMode: true
+    startWithPowerlessMode: false
 
     # PID 参数
     # 左腿
@@ -132,7 +132,7 @@ wheeled_bipedal_controller:
 
     roll_error_P: 3.0
     roll_error_I: 5.0
-    roll_error_D: 0.0001
+    roll_error_D: 0.0
     roll_error_tolerance: 0.05
 
 diff_drive_controller:

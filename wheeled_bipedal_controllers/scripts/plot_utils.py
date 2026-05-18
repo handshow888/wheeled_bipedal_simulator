@@ -26,7 +26,7 @@ plt.rcParams['xtick.labelsize'] = 15    # x轴刻度字体
 plt.rcParams['ytick.labelsize'] = 15    # y轴刻度字体
 plt.rcParams['legend.fontsize'] = 20    # 图例字体
 
-plot_linewidth = 2.0
+plot_linewidth = 3.0
 
 PLOT_CONFIGS = {
     'leg_length': {
@@ -55,8 +55,8 @@ PLOT_CONFIGS = {
     'pitch': {
         'title': 'Body Pitch Angle',
         'ylabel': 'Pitch / deg',
-        'ylim': (-30, 30),
-        # 'ylim': (-10, 10),
+        # 'ylim': (-30, 30),
+        'ylim': (-10, 10),
         'items': [
             ('pitch', 'Pitch', '-'),
         ],
@@ -88,6 +88,26 @@ PLOT_CONFIGS = {
         'items': [
             ('target_angular_vel', 'Target Angular Velocity', '--'),
             ('actual_angular_vel', 'Actual Angular Velocity', '-'),
+        ],
+    },
+
+    'support_force': {
+    'title': 'Left and Right Leg Support Force',
+    'ylabel': 'Support Force / N',
+    'ylim': None,
+    'items': [
+            ('left_support_force', 'Left Support Force', '-'),
+            ('right_support_force', 'Right Support Force', '-'),
+        ],
+    },
+
+    'wheel_acceleration': {
+        'title': 'Left and Right Wheel Acceleration',
+        'ylabel': 'Wheel Acceleration',
+        'ylim': None,
+        'items': [
+            ('left_wheel_acceleration', 'Left Wheel Acceleration', '-'),
+            ('right_wheel_acceleration', 'Right Wheel Acceleration', '-'),
         ],
     },
 
@@ -215,8 +235,9 @@ def plot_one_figure(data, time, csv_path, plot_name, start_time=None, end_time=N
         plt.xlim(0, time[-1])
     else:
         plt.xlim(0, 1)
-    # 固定纵坐标范围
-    plt.ylim(config['ylim'])
+    # 固定纵坐标范围；如果 ylim=None，则自动缩放
+    if config['ylim'] is not None:
+        plt.ylim(config['ylim'])
 
     plt.grid(True)
     plt.legend(loc='upper right', framealpha=0.8)

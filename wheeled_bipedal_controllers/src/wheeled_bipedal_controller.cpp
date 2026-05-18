@@ -60,7 +60,7 @@ namespace wheeled_bipedal_controller
         rollErrPID.setParams(auto_declare<double>("roll_error_P", 0.0),
                              auto_declare<double>("roll_error_I", 0.0),
                              auto_declare<double>("roll_error_D", 0.0));
-        rollErrPID.setMaxOutput(legLengthMax);
+        rollErrPID.setMaxOutput(legLengthMax - legLengthMin);
         linearVelPID.setMaxOutput(2.0);
 
         // 线速度卡尔曼滤波器
@@ -392,16 +392,35 @@ namespace wheeled_bipedal_controller
         else
             linearVelPID.clear();
 
+        static double leftLegLengthCpstTargetLast = 0.0, rightLegLengthCpstTargetLast = 0.0, rollCompensationLast = 0.0;
+        double leftLegLengthCpstTarget, rightLegLengthCpstTarget;
+        double rollCompensation;
         double rollError = INS.Roll * deg2rad;
         if (abs(rollError) <= rollErrTolerance_)
             rollError = 0.0;
-        double rollCompensation = rollErrPID.compute(0.0, rollError, dt);
-        if (abs(INS.Pitch) > 10.0) // pitch倾角过大时不使用roll补偿
+
+        if ((rollError > 0 && leftLegLengthCpstTargetLast == legLengthMin && rightLegLengthCpstTargetLast == legLengthMax) ||
+            (rollError < 0 && leftLegLengthCpstTargetLast == legLengthMax && rightLegLengthCpstTargetLast == legLengthMin))
+        {
+            // 已经达到最大补偿值，不再计算pid
+            rollCompensation = rollCompensationLast;
+        }
+        else if (abs(INS.Pitch) > 10.0) // pitch倾角过大时不使用roll补偿
+        {
             rollCompensation = rollErrPID.clear();
+        }
+        else
+        {
+            rollCompensation = rollErrPID.compute(0.0, rollError, dt);
+        }
+        rollCompensationLast = rollCompensation;
 
         // RCLCPP_INFO(get_node()->get_logger(), "(deg)R:%.3f P:%.3f Y:%.3f rollCompensation:%.3f", INS.Roll, INS.Pitch, INS.Yaw, rollCompensation);
-        double leftLegLengthCpstTarget = clamp(leftLegLengthTarget_ + rollCompensation, legLengthMin, legLengthMax);
-        double rightLegLengthCpstTarget = clamp(rightLegLengthTarget_ - rollCompensation, legLengthMin, legLengthMax);
+        leftLegLengthCpstTarget = clamp(leftLegLengthTarget_ + rollCompensation, legLengthMin, legLengthMax);
+        rightLegLengthCpstTarget = clamp(rightLegLengthTarget_ - rollCompensation, legLengthMin, legLengthMax);
+        leftLegLengthCpstTargetLast = leftLegLengthCpstTarget;
+        rightLegLengthCpstTargetLast = rightLegLengthCpstTarget;
+
         double leftVMC_F = leftLegLengthPID.compute(leftLegLengthCpstTarget, leftFKResult.L0, dt);
         double rightVMC_F = rightLegLengthPID.compute(rightLegLengthCpstTarget, rightFKResult.L0, dt);
         double leftFeedforward_F = 0.0;
@@ -534,10 +553,14 @@ namespace wheeled_bipedal_controller
         testMsg.data.push_back(robotLinearVel);                  // 10 实际线速度
         testMsg.data.push_back(recCmdVel_.angular.z);            // 目标角速度
         testMsg.data.push_back(angularVelKF_.angularVelocity()); // 实际角速度
+        testMsg.data.push_back(leftF_N);                         // 左腿支持力
+        testMsg.data.push_back(rightF_N);                        // 右腿支持力
+        testMsg.data.push_back(leftDDz_wLast);                   // 15 左驱动轮加速度
+        testMsg.data.push_back(rightDDz_wLast);                  // 右驱动轮加速度
         testMsg.data.push_back(finalTor[0]);                     // 左前关节电机力矩
         testMsg.data.push_back(finalTor[1]);                     // 左后关节电机力矩
-        testMsg.data.push_back(finalTor[2]);                     // 15 右前关节电机力矩
-        testMsg.data.push_back(finalTor[3]);                     // 右后关节电机力矩
+        testMsg.data.push_back(finalTor[2]);                     // 右前关节电机力矩
+        testMsg.data.push_back(finalTor[3]);                     // 20 右后关节电机力矩
         testMsg.data.push_back(finalTor[4]);                     // 左驱动轮力矩
         testMsg.data.push_back(finalTor[5]);                     // 右驱动轮力矩
         testInfoPub_->publish(testMsg);
